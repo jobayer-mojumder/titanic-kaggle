@@ -6,6 +6,8 @@ from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 import xgboost as xgb
 
 # Load datasets
@@ -30,8 +32,12 @@ preprocessor = ColumnTransformer(
         ]), categorical_features)
     ])
 
+# Split data for evaluation
+X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+
 # Preprocess the data
-X_processed = preprocessor.fit_transform(X)
+X_train_processed = preprocessor.fit_transform(X_train)
+X_val_processed = preprocessor.transform(X_val)
 X_test_processed = preprocessor.transform(X_test)
 
 # Initialize and train XGBoost model
@@ -40,7 +46,12 @@ model = xgb.XGBClassifier(
     eval_metric='logloss',
     random_state=42
 )
-model.fit(X_processed, y)
+model.fit(X_train_processed, y_train)
+
+# Evaluate model
+y_val_pred = model.predict(X_val_processed)
+accuracy = accuracy_score(y_val, y_val_pred)
+print(f'Validation Accuracy: {accuracy:.4f}')
 
 # Generate predictions
 predictions = model.predict(X_test_processed)
@@ -50,4 +61,4 @@ output = pd.DataFrame({
     'PassengerId': test_data['PassengerId'],
     'Survived': predictions
 })
-output.to_csv('submission.csv', index=False)
+output.to_csv('submission_xgb.csv', index=False)

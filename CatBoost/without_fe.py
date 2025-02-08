@@ -1,6 +1,8 @@
 import pandas as pd
 from catboost import CatBoostClassifier
 from sklearn.impute import SimpleImputer
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 
 # Load data
 train = pd.read_csv('../train.csv')
@@ -21,6 +23,9 @@ X_train = preprocess(train.drop('Survived', axis=1))
 y_train = train['Survived']
 X_test = preprocess(test)
 
+# Split data for evaluation
+X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=42)
+
 # Train CatBoost model
 model = CatBoostClassifier(
     iterations=100,
@@ -29,6 +34,11 @@ model = CatBoostClassifier(
     verbose=0  # Silent mode
 )
 model.fit(X_train, y_train)
+
+# Evaluate model
+y_pred = model.predict(X_val)
+accuracy = accuracy_score(y_val, y_pred)
+print(f'Validation Accuracy: {accuracy:.4f}')
 
 # Create submission
 pd.DataFrame({

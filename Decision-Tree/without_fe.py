@@ -1,12 +1,14 @@
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.impute import SimpleImputer
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
 
 # Load data
 train = pd.read_csv('../train.csv')
 test = pd.read_csv('../test.csv')
 
-# Basic preprocessing (same as previous versions)
+# Basic preprocessing
 def preprocess(df):
     df = df.drop(['PassengerId', 'Name', 'Ticket', 'Cabin'], axis=1)
     df['Sex'] = df['Sex'].map({'male': 0, 'female': 1})
@@ -17,16 +19,27 @@ def preprocess(df):
     return pd.DataFrame(imputer.fit_transform(df), columns=df.columns)
 
 # Prepare data
-X_train = preprocess(train.drop('Survived', axis=1))
-y_train = train['Survived']
-X_test = preprocess(test)
+X = preprocess(train.drop('Survived', axis=1))
+y = train['Survived']
+
+# Split data for evaluation
+X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # Train model
-model = DecisionTreeClassifier(max_depth=3, random_state=42)  # Constrained depth to prevent overfitting
+model = DecisionTreeClassifier(max_depth=3, random_state=42)
 model.fit(X_train, y_train)
+
+# Evaluate model
+y_pred = model.predict(X_val)
+accuracy = accuracy_score(y_val, y_pred)
+print(f'Validation Accuracy: {accuracy:.4f}')
+
+# Prepare test predictions
+X_test = preprocess(test)
+test_predictions = model.predict(X_test)
 
 # Create submission
 pd.DataFrame({
     'PassengerId': test['PassengerId'],
-    'Survived': model.predict(X_test)
+    'Survived': test_predictions
 }).to_csv('submission_dt.csv', index=False)
