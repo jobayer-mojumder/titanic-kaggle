@@ -16,8 +16,29 @@ test = pd.read_csv("../test.csv")
 
 # Basic preprocessing
 def preprocess(df):
+    df["Title"] = df["Name"].str.extract(" ([A-Za-z]+)\.", expand=False)
+    df["Title"] = df["Title"].replace(
+        [
+            "Lady",
+            "Countess",
+            "Capt",
+            "Col",
+            "Don",
+            "Dr",
+            "Major",
+            "Rev",
+            "Sir",
+            "Jonkheer",
+            "Dona",
+        ],
+        "Rare",
+    )
+
+    df["Title"] = df["Title"].replace(["Mlle", "Ms"], "Miss")
+    df["Title"] = df["Title"].replace(["Mme"], "Mrs")
+
     df = df.drop(["PassengerId", "Name", "Ticket", "Cabin", "Sex"], axis=1)
-    df = pd.get_dummies(df, columns=["Embarked", "Pclass"])
+    df = pd.get_dummies(df, columns=["Embarked", "Pclass", "Title"])
 
     # Impute missing values
     imputer = SimpleImputer(strategy="median")
@@ -36,4 +57,4 @@ model.fit(X, y)
 # Create submission
 pd.DataFrame(
     {"PassengerId": test["PassengerId"], "Survived": model.predict(X_test)}
-).to_csv("submission_rf.csv", index=False)
+).to_csv("rf_fe_1.csv", index=False)

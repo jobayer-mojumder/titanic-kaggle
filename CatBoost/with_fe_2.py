@@ -1,11 +1,8 @@
 # type: ignore
-import warnings
 
-warnings.simplefilter(action="ignore", category=FutureWarning)
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
+from catboost import CatBoostClassifier
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
@@ -14,9 +11,10 @@ train = pd.read_csv("../train.csv")
 test = pd.read_csv("../test.csv")
 
 
-# Basic preprocessing
+# Same preprocessing as previous models
 def preprocess(df):
     df = df.drop(["PassengerId", "Name", "Ticket", "Cabin", "Sex"], axis=1)
+    df["Sex"] = df["Sex"].map({"male": 0, "female": 1})
     df = pd.get_dummies(df, columns=["Embarked", "Pclass"])
 
     # Impute missing values
@@ -25,15 +23,19 @@ def preprocess(df):
 
 
 # Prepare data
-X = preprocess(train.drop("Survived", axis=1))
-y = train["Survived"]
+X_train = preprocess(train.drop("Survived", axis=1))
+y_train = train["Survived"]
 X_test = preprocess(test)
 
-# Train model
-model = RandomForestClassifier(n_estimators=100, random_state=42)
-model.fit(X, y)
+
+# Train CatBoost model
+model = CatBoostClassifier(
+    iterations=100, depth=3, random_seed=42, verbose=0  # Silent mode
+)
+model.fit(X_train, y_train)
+
 
 # Create submission
 pd.DataFrame(
     {"PassengerId": test["PassengerId"], "Survived": model.predict(X_test)}
-).to_csv("submission_rf.csv", index=False)
+).to_csv("cb_fe_2.csv", index=False)

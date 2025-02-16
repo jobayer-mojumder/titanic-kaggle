@@ -1,15 +1,48 @@
 # type: ignore
+import warnings
+
+warnings.simplefilter(action="ignore", category=FutureWarning)
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 import xgboost as xgb
+from sklearn.metrics import accuracy_score
 
 # Load datasets
 train_data = pd.read_csv("../train.csv")
 test_data = pd.read_csv("../test.csv")
 
+
+def extract_title(df):
+    df["Title"] = df["Name"].str.extract(" ([A-Za-z]+)\.", expand=False)
+    # Replace rare titles with more common groups
+    df["Title"] = df["Title"].replace(
+        [
+            "Lady",
+            "Countess",
+            "Capt",
+            "Col",
+            "Don",
+            "Dr",
+            "Major",
+            "Rev",
+            "Sir",
+            "Jonkheer",
+            "Dona",
+        ],
+        "Rare",
+    )
+    # Group similar titles
+    df["Title"] = df["Title"].replace(["Mlle", "Ms"], "Miss")
+    df["Title"] = df["Title"].replace(["Mme"], "Mrs")
+    return df
+
+
+# Apply title extraction to both train and test data
+train_data = extract_title(train_data)
+test_data = extract_title(test_data)
 
 # Separate target from features
 y = train_data["Survived"]
@@ -20,7 +53,7 @@ X_test = test_data.drop(["PassengerId", "Name", "Ticket", "Cabin", "Sex"], axis=
 
 # Define preprocessing steps
 numerical_features = ["Age", "SibSp", "Parch", "Fare"]
-categorical_features = ["Pclass", "Embarked"]
+categorical_features = ["Pclass", "Embarked", "Title"]
 
 preprocessor = ColumnTransformer(
     transformers=[
@@ -55,4 +88,4 @@ predictions = model.predict(X_test_processed)
 output = pd.DataFrame(
     {"PassengerId": test_data["PassengerId"], "Survived": predictions}
 )
-output.to_csv("submission_xgb.csv", index=False)
+output.to_csv("xgb_fe_1.csv", index=False)

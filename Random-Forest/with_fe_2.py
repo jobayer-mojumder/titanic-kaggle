@@ -16,7 +16,8 @@ test = pd.read_csv("../test.csv")
 
 # Basic preprocessing
 def preprocess(df):
-    df = df.drop(["PassengerId", "Name", "Ticket", "Cabin", "Sex"], axis=1)
+    df = df.drop(["PassengerId", "Name", "Ticket", "Cabin"], axis=1)
+    df["Sex"] = df["Sex"].map({"male": 0, "female": 1})
     df = pd.get_dummies(df, columns=["Embarked", "Pclass"])
 
     # Impute missing values
@@ -36,4 +37,4 @@ model.fit(X, y)
 # Create submission
 pd.DataFrame(
     {"PassengerId": test["PassengerId"], "Survived": model.predict(X_test)}
-).to_csv("submission_rf.csv", index=False)
+).to_csv("rf_fe_2.csv", index=False)

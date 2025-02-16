@@ -1,3 +1,4 @@
+# type: ignore
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.impute import SimpleImputer
@@ -11,10 +12,31 @@ test = pd.read_csv("../test.csv")
 
 # Basic preprocessing
 def preprocess(df):
-    df = df.drop(["PassengerId", "Name", "Ticket", "Cabin", "Sex"], axis=1)
-    df = pd.get_dummies(df, columns=["Embarked", "Pclass"])
+    df["Title"] = df["Name"].str.extract(" ([A-Za-z]+)\.", expand=False)
+    df["Title"] = df["Title"].replace(
+        [
+            "Lady",
+            "Countess",
+            "Capt",
+            "Col",
+            "Don",
+            "Dr",
+            "Major",
+            "Rev",
+            "Sir",
+            "Jonkheer",
+            "Dona",
+        ],
+        "Rare",
+    )
 
-    # Impute missing values
+    df["Title"] = df["Title"].replace(["Mlle", "Ms"], "Miss")
+    df["Title"] = df["Title"].replace(["Mme"], "Mrs")
+
+    df = df.drop(["PassengerId", "Name", "Ticket", "Cabin", "Sex"], axis=1)
+
+    df = pd.get_dummies(df, columns=["Embarked", "Pclass", "Title"])
+
     imputer = SimpleImputer(strategy="median")
     return pd.DataFrame(imputer.fit_transform(df), columns=df.columns)
 
@@ -33,5 +55,5 @@ test_predictions = model.predict(X_test)
 
 # Create submission
 pd.DataFrame({"PassengerId": test["PassengerId"], "Survived": test_predictions}).to_csv(
-    "submission_dt.csv", index=False
+    "dt_fe_1.csv", index=False
 )

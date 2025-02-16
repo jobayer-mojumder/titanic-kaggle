@@ -1,13 +1,8 @@
-# type: ignore
-import warnings
-
-warnings.simplefilter(action="ignore", category=FutureWarning)
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
 
 # Load data
 train = pd.read_csv("../train.csv")
@@ -16,7 +11,8 @@ test = pd.read_csv("../test.csv")
 
 # Basic preprocessing
 def preprocess(df):
-    df = df.drop(["PassengerId", "Name", "Ticket", "Cabin", "Sex"], axis=1)
+    df = df.drop(["PassengerId", "Name", "Ticket", "Cabin"], axis=1)
+    df["Sex"] = df["Sex"].map({"male": 0, "female": 1})
     df = pd.get_dummies(df, columns=["Embarked", "Pclass"])
 
     # Impute missing values
@@ -27,13 +23,16 @@ def preprocess(df):
 # Prepare data
 X = preprocess(train.drop("Survived", axis=1))
 y = train["Survived"]
-X_test = preprocess(test)
 
 # Train model
-model = RandomForestClassifier(n_estimators=100, random_state=42)
+model = DecisionTreeClassifier(max_depth=3, random_state=42)
 model.fit(X, y)
 
+# Prepare test predictions
+X_test = preprocess(test)
+test_predictions = model.predict(X_test)
+
 # Create submission
-pd.DataFrame(
-    {"PassengerId": test["PassengerId"], "Survived": model.predict(X_test)}
-).to_csv("submission_rf.csv", index=False)
+pd.DataFrame({"PassengerId": test["PassengerId"], "Survived": test_predictions}).to_csv(
+    "dt_fe_2.csv", index=False
+)

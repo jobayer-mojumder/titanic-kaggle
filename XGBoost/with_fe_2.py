@@ -13,14 +13,12 @@ test_data = pd.read_csv("../test.csv")
 
 # Separate target from features
 y = train_data["Survived"]
-X = train_data.drop(
-    ["Survived", "PassengerId", "Name", "Ticket", "Cabin", "Sex"], axis=1
-)
-X_test = test_data.drop(["PassengerId", "Name", "Ticket", "Cabin", "Sex"], axis=1)
+X = train_data.drop(["Survived", "PassengerId", "Name", "Ticket", "Cabin"], axis=1)
+X_test = test_data.drop(["PassengerId", "Name", "Ticket", "Cabin"], axis=1)
 
 # Define preprocessing steps
 numerical_features = ["Age", "SibSp", "Parch", "Fare"]
-categorical_features = ["Pclass", "Embarked"]
+categorical_features = ["Sex", "Pclass", "Embarked"]
 
 preprocessor = ColumnTransformer(
     transformers=[
@@ -55,4 +53,4 @@ predictions = model.predict(X_test_processed)
 output = pd.DataFrame(
     {"PassengerId": test_data["PassengerId"], "Survived": predictions}
 )
-output.to_csv("submission_xgb.csv", index=False)
+output.to_csv("xgb_fe_2.csv", index=False)
