@@ -1,3 +1,4 @@
+# type: ignore
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.impute import SimpleImputer
