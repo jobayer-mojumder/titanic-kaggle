@@ -10,16 +10,37 @@ import xgboost as xgb
 train_data = pd.read_csv("../train.csv")
 test_data = pd.read_csv("../test.csv")
 
+
+# Function to create AgeGroup
+def categorize_age(age):
+    if pd.isna(age):
+        return "Unknown"  # Handle missing values
+    elif age <= 12:
+        return "Child"
+    elif age <= 60:
+        return "Adult"
+    else:
+        return "Senior"
+
+
+# Add AgeGroup to train and test data
+train_data["AgeGroup"] = train_data["Age"].apply(categorize_age)
+test_data["AgeGroup"] = test_data["Age"].apply(categorize_age)
+
 # Separate target from features
 y = train_data["Survived"]
 X = train_data.drop(
-    ["Survived", "PassengerId", "Name", "Ticket", "Cabin", "Sex"], axis=1
+    ["Survived", "PassengerId", "Name", "Ticket", "Cabin", "Sex", "Age"],
+    axis=1,  # Drop Age since AgeGroup replaces it
 )
-X_test = test_data.drop(["PassengerId", "Name", "Ticket", "Cabin", "Sex"], axis=1)
+X_test = test_data.drop(
+    ["PassengerId", "Name", "Ticket", "Cabin", "Sex", "Age"],
+    axis=1,  # Drop Age in test data too
+)
 
 # Define preprocessing steps
-numerical_features = ["Age", "SibSp", "Parch", "Fare"]
-categorical_features = ["Pclass", "Embarked"]
+numerical_features = ["SibSp", "Parch", "Fare"]  # Removed Age
+categorical_features = ["Pclass", "Embarked", "AgeGroup"]  # Added AgeGroup
 
 preprocessor = ColumnTransformer(
     transformers=[
@@ -55,3 +76,16 @@ output = pd.DataFrame(
     {"PassengerId": test_data["PassengerId"], "Survived": predictions}
 )
 output.to_csv("submission_xgb.csv", index=False)
+
+# Optional: Feature importance
+feature_names = (
+    numerical_features
+    + preprocessor.named_transformers_["cat"]
+    .named_steps["onehot"]
+    .get_feature_names_out(categorical_features)
+    .tolist()
+)
+feature_importance = pd.DataFrame(
+    {"Feature": feature_names, "Importance": model.feature_importances_}
+)
+print(feature_importance.sort_values(by="Importance", ascending=False))
