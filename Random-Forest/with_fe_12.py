@@ -1,8 +1,11 @@
 # type: ignore
+import warnings
 
+warnings.simplefilter(action="ignore", category=FutureWarning)
 import pandas as pd
-from catboost import CatBoostClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
@@ -10,13 +13,11 @@ from sklearn.metrics import accuracy_score
 train = pd.read_csv("../train.csv")
 test = pd.read_csv("../test.csv")
 
-# Add SexPclass feature before preprocessing
-train['Sex'] = train['Sex'].map({'female': 1, 'male': 0})
-test['Sex'] = test['Sex'].map({'female': 1, 'male': 0})
-train['SexPclass'] = train['Sex'] * train['Pclass']
-test['SexPclass'] = test['Sex'] * test['Pclass']
+# Add WomenChildrenFirst feature
+train['WomenChildrenFirst'] = ((train['Sex'] == 'female') | (train['Age'] <= 12)).astype(int)
+test['WomenChildrenFirst'] = ((test['Sex'] == 'female') | (test['Age'] <= 12)).astype(int)
 
-# Same preprocessing as previous models
+# Basic preprocessing
 def preprocess(df):
     df = df.drop(["PassengerId", "Name", "Ticket", "Cabin", "Sex"], axis=1)
     df = pd.get_dummies(df, columns=["Embarked", "Pclass"])
@@ -26,17 +27,15 @@ def preprocess(df):
     return pd.DataFrame(imputer.fit_transform(df), columns=df.columns)
 
 # Prepare data
-X_train = preprocess(train.drop("Survived", axis=1))
-y_train = train["Survived"]
+X = preprocess(train.drop("Survived", axis=1))
+y = train["Survived"]
 X_test = preprocess(test)
 
-# Train CatBoost model
-model = CatBoostClassifier(
-    iterations=100, depth=3, random_seed=42, verbose=0  # Silent mode
-)
-model.fit(X_train, y_train)
+# Train model
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X, y)
 
 # Create submission
 pd.DataFrame(
     {"PassengerId": test["PassengerId"], "Survived": model.predict(X_test)}
-).to_csv("submission_catboost_sex_pclass.csv", index=False)
+).to_csv("submission_rf_womenchildrenfirst.csv", index=False)

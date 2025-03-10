@@ -9,19 +9,18 @@ from sklearn.model_selection import train_test_split
 train = pd.read_csv("../train.csv")
 test = pd.read_csv("../test.csv")
 
+# Add WomenChildrenFirst feature
+train['WomenChildrenFirst'] = ((train['Sex'] == 'female') | (train['Age'] <= 12)).astype(int)
+test['WomenChildrenFirst'] = ((test['Sex'] == 'female') | (test['Age'] <= 12)).astype(int)
 
 # Basic preprocessing
 def preprocess(df):
-    # Create SexPclass: Sex (1=female, 0=male) * Pclass (1, 2, 3)
-    df["SexPclass"] = (df["Sex"].map({"female": 1, "male": 0}) * df["Pclass"]).astype(int)
-    
     df = df.drop(["PassengerId", "Name", "Ticket", "Cabin", "Sex"], axis=1)
     df = pd.get_dummies(df, columns=["Embarked", "Pclass"])
 
     # Impute missing values
     imputer = SimpleImputer(strategy="median")
     return pd.DataFrame(imputer.fit_transform(df), columns=df.columns)
-
 
 # Prepare data
 X = preprocess(train.drop("Survived", axis=1))
@@ -37,5 +36,5 @@ test_predictions = model.predict(X_test)
 
 # Create submission
 pd.DataFrame({"PassengerId": test["PassengerId"], "Survived": test_predictions}).to_csv(
-    "submission_dt_sex_pclass.csv", index=False
+    "submission_dt_womenchildrenfirst.csv", index=False
 )

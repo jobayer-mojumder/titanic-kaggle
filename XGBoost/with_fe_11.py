@@ -10,25 +10,19 @@ import xgboost as xgb
 train_data = pd.read_csv("../train.csv")
 test_data = pd.read_csv("../test.csv")
 
-# Convert Sex to binary (1 for female, 0 for male)
-train_data['Sex'] = train_data['Sex'].map({'female': 1, 'male': 0})
-test_data['Sex'] = test_data['Sex'].map({'female': 1, 'male': 0})
+# Add IsChild feature
+train_data['IsChild'] = (train_data['Age'].between(0, 12)).astype(int)
+test_data['IsChild'] = (test_data['Age'].between(0, 12)).astype(int)
 
-# Create SexPclass feature
-train_data['SexPclass'] = train_data['Sex'] * train_data['Pclass']
-test_data['SexPclass'] = test_data['Sex'] * test_data['Pclass']
-
-# Separate target from features and drop Sex explicitly
+# Separate target from features
 y = train_data["Survived"]
 X = train_data.drop(
     ["Survived", "PassengerId", "Name", "Ticket", "Cabin", "Sex"], axis=1
 )
-X_test = test_data.drop(
-    ["PassengerId", "Name", "Ticket", "Cabin", "Sex"], axis=1
-)
+X_test = test_data.drop(["PassengerId", "Name", "Ticket", "Cabin", "Sex"], axis=1)
 
 # Define preprocessing steps
-numerical_features = ["Age", "SibSp", "Parch", "Fare", "SexPclass"]
+numerical_features = ["Age", "SibSp", "Parch", "Fare", "IsChild"]  # Add IsChild
 categorical_features = ["Pclass", "Embarked"]
 
 preprocessor = ColumnTransformer(
@@ -64,4 +58,4 @@ predictions = model.predict(X_test_processed)
 output = pd.DataFrame(
     {"PassengerId": test_data["PassengerId"], "Survived": predictions}
 )
-output.to_csv("submission_xgb_sex_pclass.csv", index=False)
+output.to_csv("submission_xgb_ischild.csv", index=False)

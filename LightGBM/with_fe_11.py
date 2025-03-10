@@ -9,22 +9,14 @@ from sklearn.metrics import accuracy_score
 train = pd.read_csv("../train.csv")
 test = pd.read_csv("../test.csv")
 
-# Add SexPclass feature before preprocessing
-train['Sex'] = train['Sex'].map({'female': 1, 'male': 0})
-test['Sex'] = test['Sex'].map({'female': 1, 'male': 0})
-train['SexPclass'] = train['Sex'] * train['Pclass']
-test['SexPclass'] = test['Sex'] * test['Pclass']
+# Add IsChild feature
+train['IsChild'] = (train['Age'].between(0, 12)).astype(int)
+test['IsChild'] = (test['Age'].between(0, 12)).astype(int)
 
 # Same preprocessing as previous models
 def preprocess(df):
     df = df.drop(
-        [
-            "PassengerId",
-            "Name",
-            "Ticket",
-            "Cabin",
-            "Sex",
-        ],
+        ["PassengerId", "Name", "Ticket", "Cabin", "Sex"],
         axis=1,
     )
     df = pd.get_dummies(df, columns=["Embarked", "Pclass"])
@@ -45,4 +37,4 @@ model.fit(X_train, y_train)
 # Create submission
 pd.DataFrame(
     {"PassengerId": test["PassengerId"], "Survived": model.predict(X_test)}
-).to_csv("submission_lgbm_sex_pclass.csv", index=False)
+).to_csv("submission_lgbm_ischild.csv", index=False)
