@@ -13,12 +13,16 @@ test_data = pd.read_csv("../test.csv")
 # Separate target from features
 y = train_data["Survived"]
 X = train_data.drop(
-    ["Survived", "PassengerId", "Name", "Ticket", "Cabin", "Sex"], axis=1
+    ["Survived", "PassengerId", "Name", "Ticket", "Cabin"], axis=1
 )
-X_test = test_data.drop(["PassengerId", "Name", "Ticket", "Cabin", "Sex"], axis=1)
+X_test = test_data.drop(["PassengerId", "Name", "Ticket", "Cabin"], axis=1)
+
+# Convert Sex to binary (1 for female, 0 for male)
+X["Sex"] = X["Sex"].map({"female": 1, "male": 0})
+X_test["Sex"] = X_test["Sex"].map({"female": 1, "male": 0})
 
 # Define preprocessing steps
-numerical_features = ["Age", "SibSp", "Parch", "Fare"]
+numerical_features = ["Age", "SibSp", "Parch", "Fare", "Sex"]
 categorical_features = ["Pclass", "Embarked"]
 
 preprocessor = ColumnTransformer(

@@ -12,7 +12,8 @@ test = pd.read_csv("../test.csv")
 
 # Basic preprocessing
 def preprocess(df):
-    df = df.drop(["PassengerId", "Name", "Ticket", "Cabin", "Sex"], axis=1)
+    df = df.drop(["PassengerId", "Name", "Ticket", "Cabin"], axis=1)
+    df["Sex"] = df["Sex"].map({"male": 0, "female": 1})
     df = pd.get_dummies(df, columns=["Embarked", "Pclass"])
 
     # Impute missing values
