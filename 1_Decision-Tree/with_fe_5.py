@@ -11,7 +11,7 @@ test = pd.read_csv("../test.csv")
 
 
 # Updated preprocessing function to include FarePerPerson
-def preprocess(df):
+def preprocess(df, reference_columns=None):
     # Calculate FamilySize and FarePerPerson
     df["FamilySize"] = df["SibSp"] + df["Parch"] + 1
     df["FarePerPerson"] = df["Fare"] / df["FamilySize"]
@@ -24,6 +24,13 @@ def preprocess(df):
     df["Sex"] = df["Sex"].map({"male": 0, "female": 1})
 
     df = pd.get_dummies(df, columns=["Embarked", "Pclass"])
+
+    # Align columns to match training set
+    if reference_columns is not None:
+        missing_cols = set(reference_columns) - set(df.columns)
+        for col in missing_cols:
+            df[col] = 0
+        df = df[reference_columns]
 
     # Impute missing values
     imputer = SimpleImputer(strategy="median")
@@ -39,7 +46,7 @@ model = DecisionTreeClassifier(max_depth=3, random_state=42)
 model.fit(X, y)
 
 # Prepare test predictions
-X_test = preprocess(test)
+X_test = preprocess(test, reference_columns=X.columns)
 test_predictions = model.predict(X_test)
 
 # Create submission

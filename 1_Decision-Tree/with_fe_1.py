@@ -11,7 +11,7 @@ test = pd.read_csv("../test.csv")
 
 
 # Basic preprocessing
-def preprocess(df):
+def preprocess(df, reference_columns=None):
     df["Title"] = df["Name"].str.extract(" ([A-Za-z]+)\.", expand=False)
     df["Title"] = df["Title"].replace(
         [
@@ -39,6 +39,13 @@ def preprocess(df):
 
     df = pd.get_dummies(df, columns=["Embarked", "Pclass", "Title"])
 
+    # Align columns to match training set
+    if reference_columns is not None:
+        missing_cols = set(reference_columns) - set(df.columns)
+        for col in missing_cols:
+            df[col] = 0
+        df = df[reference_columns]
+
     imputer = SimpleImputer(strategy="median")
     return pd.DataFrame(imputer.fit_transform(df), columns=df.columns)
 
@@ -52,7 +59,7 @@ model = DecisionTreeClassifier(max_depth=3, random_state=42)
 model.fit(X, y)
 
 # Prepare test predictions
-X_test = preprocess(test)
+X_test = preprocess(test, reference_columns=X.columns)
 test_predictions = model.predict(X_test)
 
 # Create submission
