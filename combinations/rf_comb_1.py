@@ -9,24 +9,34 @@ from sklearn.impute import SimpleImputer
 train = pd.read_csv("../train.csv")
 test = pd.read_csv("../test.csv")
 
+# Function to extract Deck from Cabin
+def get_deck(cabin):
+    if pd.isna(cabin):
+        return "Unknown"
+    else:
+        return cabin[0]
+
 # Preprocessing function
 def preprocess(df, reference_columns=None):
+    # Create Deck feature
+    df["Deck"] = df["Cabin"].apply(get_deck)
+
     df["IsMother"] = ((df["Sex"] == "female") & (df["Parch"] > 0) & (df["Age"] > 18)).astype(int)
     
     # Drop unnecessary columns
     df = df.drop(["PassengerId", "Name", "Ticket", "Cabin"], axis=1)
-
+    
     df["Sex"] = df["Sex"].map({"male": 0, "female": 1})
-    
+
     # One-hot encode categorical columns
-    df = pd.get_dummies(df, columns=["Embarked", "Pclass"])
+    df = pd.get_dummies(df, columns=["Embarked", "Pclass", "Deck"])
     
-    # Align test set columns with training set
+    # If reference_columns is provided (for test set), align columns
     if reference_columns is not None:
         missing_cols = set(reference_columns) - set(df.columns)
         for col in missing_cols:
-            df[col] = 0
-        df = df[reference_columns]
+            df[col] = 0  # Add missing columns with zeros
+        df = df[reference_columns]  # Reorder to match training set
     
     # Impute missing values
     imputer = SimpleImputer(strategy="median")
@@ -36,7 +46,7 @@ def preprocess(df, reference_columns=None):
 X = preprocess(train.drop("Survived", axis=1))
 y = train["Survived"]
 
-# Prepare test data
+# Prepare test data, aligning with training columns
 X_test = preprocess(test, reference_columns=X.columns)
 
 # Train model
@@ -46,7 +56,7 @@ model.fit(X, y)
 # Create submission
 pd.DataFrame(
     {"PassengerId": test["PassengerId"], "Survived": model.predict(X_test)}
-).to_csv("submission_rf_ismother.csv", index=False)
+).to_csv("submission_rf_comb_1.csv", index=False)
 
 # Feature importance
 feature_importance = pd.DataFrame({
