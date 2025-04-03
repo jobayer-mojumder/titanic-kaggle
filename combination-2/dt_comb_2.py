@@ -1,13 +1,15 @@
 # type: ignore
-import warnings
-warnings.simplefilter(action="ignore", category=FutureWarning)
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.impute import SimpleImputer
 
 # Load data
 train = pd.read_csv("../train.csv")
 test = pd.read_csv("../test.csv")
+
+# Add WomenChildrenFirst feature
+train['WomenChildrenFirst'] = ((train['Sex'] == 'female') | (train['Age'] <= 12)).astype(int)
+test['WomenChildrenFirst'] = ((test['Sex'] == 'female') | (test['Age'] <= 12)).astype(int)
 
 # Function to extract Deck from Cabin
 def get_deck(cabin):
@@ -21,15 +23,29 @@ def preprocess(df, reference_columns=None):
     # Create Deck feature
     df["Deck"] = df["Cabin"].apply(get_deck)
 
-    df["IsMother"] = ((df["Sex"] == "female") & (df["Parch"] > 0) & (df["Age"] > 18)).astype(int)
+    # Create AgeGroup feature
+    def categorize_age(age):
+        if pd.isna(age):
+            return "Unknown"  # Handle missing values
+        elif age <= 12:
+            return "Child"
+        elif age <= 60:
+            return "Adult"
+        else:
+            return "Senior"
+
+    df["AgeGroup"] = df["Age"].apply(categorize_age)
+
+    # Create HasCabin feature
+    df["HasCabin"] = df["Cabin"].notna().astype(int)
     
     # Drop unnecessary columns
-    df = df.drop(["PassengerId", "Name", "Ticket", "Cabin"], axis=1)
-    
-    df["Sex"] = df["Sex"].map({"male": 0, "female": 1})
+    df = df.drop(["PassengerId", "Name", "Ticket", "Cabin", "Age"], axis=1)
 
+    df["Sex"] = df["Sex"].map({"male": 0, "female": 1})
+    
     # One-hot encode categorical columns
-    df = pd.get_dummies(df, columns=["Embarked", "Pclass", "Deck"])
+    df = pd.get_dummies(df, columns=["Embarked", "Pclass", "Deck", "AgeGroup"])
     
     # If reference_columns is provided (for test set), align columns
     if reference_columns is not None:
@@ -50,13 +66,13 @@ y = train["Survived"]
 X_test = preprocess(test, reference_columns=X.columns)
 
 # Train model
-model = RandomForestClassifier(n_estimators=100, random_state=42)
+model = DecisionTreeClassifier(max_depth=3, random_state=42)
 model.fit(X, y)
 
 # Create submission
 pd.DataFrame(
     {"PassengerId": test["PassengerId"], "Survived": model.predict(X_test)}
-).to_csv("submission_rf_comb_1.csv", index=False)
+).to_csv("submission_dt_comb_2.csv", index=False)
 
 # Feature importance
 feature_importance = pd.DataFrame({

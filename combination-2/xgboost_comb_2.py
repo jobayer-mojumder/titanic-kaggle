@@ -14,6 +14,10 @@ test_data = pd.read_csv("../test.csv")
 train_data['WomenChildrenFirst'] = ((train_data['Sex'] == 'female') | (train_data['Age'] <= 12)).astype(int)
 test_data['WomenChildrenFirst'] = ((test_data['Sex'] == 'female') | (test_data['Age'] <= 12)).astype(int)
 
+# Add IsMother feature
+train_data["IsMother"] = ((train_data["Sex"] == "female") & (train_data["Parch"] > 0) & (train_data["Age"] > 18)).astype(int)
+test_data["IsMother"] = ((test_data["Sex"] == "female") & (test_data["Parch"] > 0) & (test_data["Age"] > 18)).astype(int)
+
 # Convert Sex to binary (1 for female, 0 for male)
 train_data['Sex'] = train_data['Sex'].map({'female': 1, 'male': 0})
 test_data['Sex'] = test_data['Sex'].map({'female': 1, 'male': 0})
@@ -32,7 +36,7 @@ X_test = test_data.drop(
 )
 
 # Define preprocessing steps
-numerical_features = ["Age", "SibSp", "Parch", "Fare", "SexPclass", "Sex", "WomenChildrenFirst"]
+numerical_features = ["Age", "SibSp", "Parch", "Fare", "SexPclass", "Sex", "WomenChildrenFirst", "IsMother"]
 categorical_features = ["Pclass", "Embarked"]
 
 preprocessor = ColumnTransformer(
@@ -68,4 +72,4 @@ predictions = model.predict(X_test_processed)
 output = pd.DataFrame(
     {"PassengerId": test_data["PassengerId"], "Survived": predictions}
 )
-output.to_csv("submission_xgb_comb_1.csv", index=False)
+output.to_csv("submission_xgb_comb_2.csv", index=False)

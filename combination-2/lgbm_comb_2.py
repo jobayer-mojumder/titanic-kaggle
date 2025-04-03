@@ -35,12 +35,6 @@ def preprocess(df, reference_columns=None):
 
     df["AgeGroup"] = df["Age"].apply(categorize_age)
 
-    # Create IsMother feature: 1 for females with Parch > 0 and Age > 18
-    df["IsMother"] = ((df["Sex"] == 1) & (df["Parch"] > 0) & (df["Age"] > 18)).astype(int)
-
-    # Calculate FamilySize
-    df["FamilySize"] = df["SibSp"] + df["Parch"] + 1
-
     # Create Deck feature
     df["Deck"] = df["Cabin"].apply(get_deck)
     
@@ -75,7 +69,7 @@ model.fit(X_train, y_train)
 # Create submission
 pd.DataFrame(
     {"PassengerId": test["PassengerId"], "Survived": model.predict(X_test)}
-).to_csv("submission_lgbm_comb_1.csv", index=False)
+).to_csv("submission_lgbm_comb_2.csv", index=False)
 
 # Feature importance
 feature_importance = pd.DataFrame({

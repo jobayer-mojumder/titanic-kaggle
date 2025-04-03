@@ -20,10 +20,20 @@ test['Sex'] = test['Sex'].map({'female': 1, 'male': 0})
 train['SexPclass'] = train['Sex'] * train['Pclass']
 test['SexPclass'] = test['Sex'] * test['Pclass']
 
+# Function to extract Deck from Cabin
+def get_deck(cabin):
+    if pd.isna(cabin):
+        return "Unknown"
+    else:
+        return cabin[0]
+
 # Same preprocessing as previous models
 def preprocess(df):
+    # Create Deck feature
+    df["Deck"] = df["Cabin"].apply(get_deck)
+
     df = df.drop(["PassengerId", "Name", "Ticket", "Cabin"], axis=1)
-    df = pd.get_dummies(df, columns=["Embarked", "Pclass"])
+    df = pd.get_dummies(df, columns=["Embarked", "Pclass", "Deck"])
 
     # Impute missing values
     imputer = SimpleImputer(strategy="median")
@@ -43,4 +53,4 @@ model.fit(X_train, y_train)
 # Create submission
 pd.DataFrame(
     {"PassengerId": test["PassengerId"], "Survived": model.predict(X_test)}
-).to_csv("submission_catboost_comb_1.csv", index=False)
+).to_csv("submission_catboost_comb_2.csv", index=False)
