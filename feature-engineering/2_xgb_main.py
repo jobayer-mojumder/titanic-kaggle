@@ -1,100 +1,12 @@
 #type: ignore
+import os
 import pandas as pd
 import xgboost as xgb
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
-
-# ------------------ Global Tracker ------------------
-
-SELECTED_FEATURES = []
-
-# ------------------ Feature Engineering Functions ------------------
-
-def add_title(df):
-    df["Title"] = df["Name"].str.extract(" ([A-Za-z]+)\\.", expand=False)
-    df["Title"] = df["Title"].replace(
-        ["Lady", "Countess", "Capt", "Col", "Don", "Dr", "Major", "Rev", "Sir", "Jonkheer", "Dona"], "Rare"
-    )
-    df["Title"] = df["Title"].replace({"Mlle": "Miss", "Ms": "Miss", "Mme": "Mrs"})
-    return df
-
-def add_family_size(df):
-    df["FamilySize"] = df["SibSp"] + df["Parch"] + 1
-    if "family_size" not in SELECTED_FEATURES:
-        df.drop(columns=["FamilySize"], inplace=True)
-    return df
-
-def add_is_alone(df):
-    df["FamilySize"] = df["SibSp"] + df["Parch"] + 1
-    df["IsAlone"] = (df["FamilySize"] == 1).astype(int)
-    df.drop(columns=["FamilySize"], inplace=True)
-    return df
-
-def add_age_group(df):
-    def categorize(age):
-        if pd.isna(age): return "Unknown"
-        elif age <= 12: return "Child"
-        elif age <= 60: return "Adult"
-        else: return "Senior"
-    df["AgeGroup"] = df["Age"].apply(categorize)
-    return df
-
-def add_fare_per_person(df):
-    df["FamilySize"] = df["SibSp"] + df["Parch"] + 1
-    df["FarePerPerson"] = df["Fare"] / df["FamilySize"]
-    df.drop(columns=["FamilySize"], inplace=True)
-    return df
-
-def add_deck(df):
-    df["Deck"] = df["Cabin"].apply(lambda x: x[0] if pd.notna(x) else "Unknown")
-    return df
-
-def add_has_cabin(df):
-    df["HasCabin"] = df["Cabin"].notna().astype(int)
-    return df
-
-def add_is_mother(df):
-    df["IsMother"] = ((df["Sex"] == "female") & (df["Parch"] > 0) & (df["Age"] > 18)).astype(int)
-    return df
-
-def add_sex_pclass(df):
-    df["Sex"] = df["Sex"].map({"female": 1, "male": 0})
-    df["SexPclass"] = df["Sex"] * df["Pclass"]
-    return df
-
-def add_is_child(df):
-    df["IsChild"] = (df["Age"] <= 12).astype(int)
-    return df
-
-def add_women_children_first(df):
-    df["WomenChildrenFirst"] = ((df["Sex"] == "female") | (df["Age"] <= 12)).astype(int)
-    return df
-
-# ------------------ Feature Registry ------------------
-
-FEATURE_FUNCTIONS = {
-    "title": add_title,
-    "family_size": add_family_size,
-    "is_alone": add_is_alone,
-    "age_group": add_age_group,
-    "fare_per_person": add_fare_per_person,
-    "deck": add_deck,
-    "has_cabin": add_has_cabin,
-    "is_mother": add_is_mother,
-    "sex_pclass": add_sex_pclass,
-    "is_child": add_is_child,
-    "women_children_first": add_women_children_first,
-}
-
-FEATURE_MAP = {
-    1: "title", 2: "family_size", 3: "is_alone", 4: "age_group",
-    5: "fare_per_person", 6: "deck", 7: "has_cabin", 8: "is_mother",
-    9: "sex_pclass", 10: "is_child", 11: "women_children_first"
-}
-
-# ------------------ Preprocessing ------------------
+from modules.feature_implementation import FEATURE_FUNCTIONS, FEATURE_MAP, SELECTED_FEATURES
 
 def preprocess(df, features_to_use, is_train=True, ref_columns=None):
     if not features_to_use:
@@ -157,9 +69,16 @@ def run_xgboost(feature_nums):
     model.fit(X_train, y)
 
     preds = model.predict(X_test)
-    out_file = "submissions/2_XGBoost/submission_xgb_" + ("_".join(map(str, feature_nums)) if feature_nums else "base") + ".csv"
+
+    output_dir = "submissions/2_XGBoost"
+    os.makedirs(output_dir, exist_ok=True)
+
+    suffix = "_".join(map(str, feature_nums)) if feature_nums else "base"
+    out_file = f"{output_dir}/submission_xgb_{suffix}.csv"
+
     pd.DataFrame({"PassengerId": test["PassengerId"], "Survived": preds}).to_csv(out_file, index=False)
     print(f"✅ Saved predictions to {out_file}")
+
 
 # ------------------ Main ------------------
 
