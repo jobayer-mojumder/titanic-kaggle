@@ -35,7 +35,7 @@ def preprocess(df, feature_names, is_train=True, reference_columns=None):
 
 # ------------------ Runner ------------------
 
-def run(features_by_number):
+def run_dt(features_by_number):
     feature_names = [FEATURE_MAP[n] for n in features_by_number]
     global SELECTED_FEATURES
     SELECTED_FEATURES = feature_names
@@ -67,7 +67,15 @@ def run(features_by_number):
     pd.DataFrame({"PassengerId": test["PassengerId"], "Survived": preds}).to_csv(filename, index=False)
     print(f"✅ Saved to {filename}")
 
+
+def run_all():
+    # Run all combinations of features
+    for i in range(1, len(FEATURE_MAP) + 1):
+        run_dt([i])
+    # Run baseline only
+    run_dt([])
+
 # ------------------ Main ------------------
 
 if __name__ == "__main__":
-    run([])  # 👈 Change this list to try other combinations
+    run_all()

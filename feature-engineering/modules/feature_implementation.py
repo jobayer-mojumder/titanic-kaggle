@@ -26,6 +26,7 @@ def add_age_group(df):
         elif age <= 60: return "Adult"
         else: return "Senior"
     df["AgeGroup"] = df["Age"].apply(categorize_age)
+    df.drop(columns=["Age"], inplace=True)
     return df
 
 def add_fare_per_person(df):
