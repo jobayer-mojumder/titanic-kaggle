@@ -4,6 +4,7 @@ import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.impute import SimpleImputer
 from modules.feature_implementation import FEATURE_FUNCTIONS, FEATURE_MAP, SELECTED_FEATURES
+from modules.combination import GENERAL_FEATURE_COMBINATIONS
 
 # ------------------ Preprocessing ------------------
 
@@ -68,14 +69,18 @@ def run_dt(features_by_number):
     print(f"✅ Saved to {filename}")
 
 
-def run_all():
-    # Run all combinations of features
+def run_all_single_features():
     for i in range(1, len(FEATURE_MAP) + 1):
         run_dt([i])
-    # Run baseline only
     run_dt([])
+
+def run_general_combinations():
+    # Run all general combinations
+    for combination in GENERAL_FEATURE_COMBINATIONS:
+        run_dt(combination)
 
 # ------------------ Main ------------------
 
 if __name__ == "__main__":
-    run_all()
+    # run_all_single_features()
+    run_general_combinations()

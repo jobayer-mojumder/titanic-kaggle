@@ -7,6 +7,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 from modules.feature_implementation import FEATURE_FUNCTIONS, FEATURE_MAP, SELECTED_FEATURES
+from modules.combination import GENERAL_FEATURE_COMBINATIONS
 
 def preprocess(df, features_to_use, is_train=True, ref_columns=None):
     if not features_to_use:
@@ -75,5 +76,18 @@ def run_rf(feature_nums):
     pd.DataFrame({"PassengerId": test["PassengerId"], "Survived": preds}).to_csv(out_file, index=False)
     print(f"✅ Saved predictions to {out_file}")
 
+def run_all_single_features():
+    for i in range(1, len(FEATURE_MAP) + 1):
+        run_rf([i])
+    run_rf([])
+
+def run_general_combinations():
+    # Run all general combinations
+    for combination in GENERAL_FEATURE_COMBINATIONS:
+        run_rf(combination)
+
+# ------------------ Main ------------------
+
 if __name__ == "__main__":
-    run_rf([3, 6, 8])
+    # run_all_single_features()
+    run_general_combinations()

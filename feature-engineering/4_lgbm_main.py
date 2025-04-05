@@ -7,6 +7,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 from modules.feature_implementation import FEATURE_FUNCTIONS, FEATURE_MAP, SELECTED_FEATURES
+from modules.combination import GENERAL_FEATURE_COMBINATIONS
 
 def preprocess(df, features_to_use, is_train=True, ref_columns=None):
     if not features_to_use:
@@ -80,7 +81,18 @@ def run_lgbm(feature_nums):
     print(f"✅ Saved predictions to {out_file}")
 
 
+def run_all_single_features():
+    for i in range(1, len(FEATURE_MAP) + 1):
+        run_lgbm([i])
+    run_lgbm([])
+
+def run_general_combinations():
+    # Run all general combinations
+    for combination in GENERAL_FEATURE_COMBINATIONS:
+        run_lgbm(combination)
+
 # ------------------ Main ------------------
 
 if __name__ == "__main__":
-    run_lgbm([9])  # [] → baseline features only, same as without_fe.py
+    # run_all_single_features()
+    run_general_combinations()
