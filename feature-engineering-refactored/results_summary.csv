@@ -1,0 +1,13 @@
+model,features,accuracy,mode
+dt,title,0.822666499278137,single
+dt,family_size,0.8114556525014125,single
+dt,is_alone,0.8114556525014125,single
+dt,age_group,0.813709120582512,single
+dt,fare_per_person,0.8114556525014125,single
+dt,deck,0.8092210156299039,single
+dt,has_cabin,0.8114556525014125,single
+dt,is_mother,0.8114556525014125,single
+dt,sex_pclass,0.8114556525014125,single
+dt,is_child,0.8114556525014125,single
+dt,women_children_first,0.8114556525014125,single
+dt,baseline,0.8091959073504487,baseline
