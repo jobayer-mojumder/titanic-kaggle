@@ -1,4 +1,4 @@
-#type: ignore
+# type: ignore
 import os
 import pandas as pd
 from lightgbm import LGBMClassifier
@@ -6,8 +6,13 @@ from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
-from modules.feature_implementation import FEATURE_FUNCTIONS, FEATURE_MAP, SELECTED_FEATURES
-from modules.combination import GENERAL_FEATURE_COMBINATIONS
+from modules.feature_implementation import (
+    FEATURE_FUNCTIONS,
+    FEATURE_MAP,
+    SELECTED_FEATURES,
+)
+from modules.combination import GENERAL_FEATURE_COMBINATIONS, LGBM_COMBINATIONS
+
 
 def preprocess(df, features_to_use, is_train=True, ref_columns=None):
     if not features_to_use:
@@ -28,19 +33,40 @@ def preprocess(df, features_to_use, is_train=True, ref_columns=None):
         categorical_features = ["Pclass", "Embarked"]
     else:
         known_numeric = [
-            "Age", "SibSp", "Parch", "Fare", "Sex", "SexPclass", "FarePerPerson",
-            "FamilySize", "IsAlone", "IsChild", "IsMother", "WomenChildrenFirst", "HasCabin"
+            "Age",
+            "SibSp",
+            "Parch",
+            "Fare",
+            "Sex",
+            "SexPclass",
+            "FarePerPerson",
+            "FamilySize",
+            "IsAlone",
+            "IsChild",
+            "IsMother",
+            "WomenChildrenFirst",
+            "HasCabin",
         ]
         numerical_features = [col for col in known_numeric if col in df.columns]
-        categorical_features = df.select_dtypes(include=["object", "category"]).columns.tolist()
+        categorical_features = df.select_dtypes(
+            include=["object", "category"]
+        ).columns.tolist()
 
-    preprocessor = ColumnTransformer([
-        ("num", SimpleImputer(strategy="median"), numerical_features),
-        ("cat", Pipeline([
-            ("imputer", SimpleImputer(strategy="most_frequent")),
-            ("onehot", OneHotEncoder(handle_unknown="ignore"))
-        ]), categorical_features)
-    ])
+    preprocessor = ColumnTransformer(
+        [
+            ("num", SimpleImputer(strategy="median"), numerical_features),
+            (
+                "cat",
+                Pipeline(
+                    [
+                        ("imputer", SimpleImputer(strategy="most_frequent")),
+                        ("onehot", OneHotEncoder(handle_unknown="ignore")),
+                    ]
+                ),
+                categorical_features,
+            ),
+        ]
+    )
 
     if is_train:
         X = preprocessor.fit_transform(df)
@@ -49,7 +75,9 @@ def preprocess(df, features_to_use, is_train=True, ref_columns=None):
         X = ref_columns.transform(df)
         return X, ref_columns
 
+
 # ------------------ Runner ------------------
+
 
 def run_lgbm(feature_nums):
     global SELECTED_FEATURES
@@ -63,7 +91,9 @@ def run_lgbm(feature_nums):
     train = train.drop(columns=["Survived"])
 
     X_train, preproc = preprocess(train.copy(), SELECTED_FEATURES, is_train=True)
-    X_test, _ = preprocess(test.copy(), SELECTED_FEATURES, is_train=False, ref_columns=preproc)
+    X_test, _ = preprocess(
+        test.copy(), SELECTED_FEATURES, is_train=False, ref_columns=preproc
+    )
 
     model = LGBMClassifier(n_estimators=100, max_depth=3, random_state=42, verbose=-1)
     model.fit(X_train, y)
@@ -77,7 +107,9 @@ def run_lgbm(feature_nums):
     suffix = "base" if not feature_nums else "_".join(map(str, feature_nums))
     out_file = f"{output_dir}/submission_lgbm_{suffix}.csv"
 
-    pd.DataFrame({"PassengerId": test["PassengerId"], "Survived": preds}).to_csv(out_file, index=False)
+    pd.DataFrame({"PassengerId": test["PassengerId"], "Survived": preds}).to_csv(
+        out_file, index=False
+    )
     print(f"✅ Saved predictions to {out_file}")
 
 
@@ -86,13 +118,22 @@ def run_all_single_features():
         run_lgbm([i])
     run_lgbm([])
 
+
 def run_general_combinations():
     # Run all general combinations
     for combination in GENERAL_FEATURE_COMBINATIONS:
         run_lgbm(combination)
 
+
+def run_lgbm_combinations():
+    # Run all LGBM combinations
+    for combination in LGBM_COMBINATIONS:
+        run_lgbm(combination)
+
+
 # ------------------ Main ------------------
 
 if __name__ == "__main__":
     # run_all_single_features()
-    run_general_combinations()
+    # run_general_combinations()
+    run_lgbm_combinations()

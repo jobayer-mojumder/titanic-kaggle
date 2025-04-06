@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.impute import SimpleImputer
 from modules.feature_implementation import FEATURE_FUNCTIONS, FEATURE_MAP, SELECTED_FEATURES
-from modules.combination import GENERAL_FEATURE_COMBINATIONS
+from modules.combination import GENERAL_FEATURE_COMBINATIONS, DT_COMBINATIONS
 
 # ------------------ Preprocessing ------------------
 
@@ -75,12 +75,15 @@ def run_all_single_features():
     run_dt([])
 
 def run_general_combinations():
-    # Run all general combinations
     for combination in GENERAL_FEATURE_COMBINATIONS:
         run_dt(combination)
 
-# ------------------ Main ------------------
+def run_dt_combinations():
+    for combination in DT_COMBINATIONS:
+        run_dt(combination)
 
+# ------------------ Main ------------------
 if __name__ == "__main__":
     # run_all_single_features()
-    run_general_combinations()
+    #run_general_combinations()
+    run_dt_combinations()
