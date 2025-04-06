@@ -1,12 +1,12 @@
+# type: ignore
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
 
-from modules.feature_implementation import FEATURE_FUNCTIONS, FEATURE_MAP, FEATURE_META
+from modules.feature_implementation import FEATURE_FUNCTIONS, FEATURE_META
 
-# Always included raw features
 ALWAYS_INCLUDED_FEATURES = ["Sex"]
 ALWAYS_INCLUDED_CATEGORICAL = ["Pclass", "Embarked"]
 BASELINE_FEATURES = ["Sex", "Pclass", "Embarked", "Age", "SibSp", "Parch", "Fare"]

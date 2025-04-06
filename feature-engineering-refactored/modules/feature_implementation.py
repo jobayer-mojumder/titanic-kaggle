@@ -78,13 +78,10 @@ def add_is_mother(df):
 
 def add_sex_pclass(df):
     if "Sex" not in df.columns or "Pclass" not in df.columns:
-        return df  # skip if required columns are missing
+        return df
 
-    # Map Sex safely and handle missing values
     df["SexMapped"] = df["Sex"].map({"female": 1, "male": 0})
-    df["Pclass"] = pd.to_numeric(
-        df["Pclass"], errors="coerce"
-    )  # convert to numeric, if not already
+    df["Pclass"] = pd.to_numeric(df["Pclass"], errors="coerce")
     df["SexPclass"] = (df["SexMapped"] * df["Pclass"]).fillna(0).astype(int)
 
     df.drop(columns=["SexMapped"], inplace=True)

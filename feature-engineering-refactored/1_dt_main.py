@@ -28,12 +28,7 @@ def run_model(feature_nums, use_cv=True):
     preds = model.predict(X_test)
 
     if use_cv:
-        acc = evaluate_model(model, X_train, y)
-        BASELINE_SCORE = 0.80920
-        if acc is not None and acc < BASELINE_SCORE:
-            print(
-                f"\033[91m⚠️  Warning: Accuracy drop detected: {acc:.5f} vs baseline {BASELINE_SCORE:.5f} \033[0m"
-            )
+        acc = evaluate_model(model, X_train, y, model_name="dt")
     else:
         acc = None
 
@@ -61,7 +56,7 @@ def run_all_single_feature():
     for i in FEATURE_MAP.keys():
         run_model([i], use_cv=True)
 
-    run_model([], use_cv=True)  # Run with no features
+    run_model([], use_cv=True)
 
 
 if __name__ == "__main__":

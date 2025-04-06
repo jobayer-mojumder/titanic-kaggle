@@ -1,7 +1,4 @@
-import pandas as pd
-import os
-
-
+# type: ignore
 import pandas as pd
 import os
 
@@ -21,7 +18,6 @@ def log_results(model_name, feature_list, accuracy, output_file="results_summary
         "mode": mode,
     }
 
-    # ✅ Fix for empty file issue
     if os.path.exists(output_file) and os.path.getsize(output_file) > 0:
         df = pd.read_csv(output_file)
         df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
