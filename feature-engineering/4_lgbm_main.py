@@ -46,7 +46,7 @@ def run_model(feature_nums, use_cv=True):
 
     print(f"✅ Saved predictions to {out_file}")
     if acc is not None:
-        log_results("lgbm", selected_features, acc)
+        log_results("lgbm", selected_features, acc, out_file)
 
 
 def run_all_combinations():

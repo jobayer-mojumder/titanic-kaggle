@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
 from modules.preprocessing import preprocess
 from modules.feature_implementation import FEATURE_MAP
-from modules.summary import log_results
+from modules.summary import log_results, compare_with_kaggle
 from modules.evaluation import evaluate_model
 
 
@@ -42,7 +42,7 @@ def run_model(feature_nums, use_cv=True):
 
     print(f"✅ Saved predictions to {out_file}")
     if acc is not None:
-        log_results("dt", selected_features, acc)
+        log_results("dt", selected_features, acc, out_file)
 
 
 def run_all_combinations():

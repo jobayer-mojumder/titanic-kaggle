@@ -27,7 +27,7 @@ rf,title,0.8238,single
 rf,family_size,0.78565,single
 rf,is_alone,0.78794,single
 rf,age_group,0.80925,single
-rf,fare_per_person,0.8126,single
+rf,fare_per_person,0.81485,single
 rf,deck,0.80586,single
 rf,has_cabin,0.80247,single
 rf,is_mother,0.81146,single
@@ -49,13 +49,13 @@ lgbm,women_children_first,0.82604,single
 lgbm,baseline,0.82382,baseline
 cb,title,0.82042,single
 cb,family_size,0.80138,single
-cb,is_alone,0.80249,single
+cb,is_alone,0.80024,single
 cb,age_group,0.82604,single
-cb,fare_per_person,0.79687,single
+cb,fare_per_person,0.79912,single
 cb,deck,0.80475,single
-cb,has_cabin,0.80586,single
+cb,has_cabin,0.80697,single
 cb,is_mother,0.81146,single
 cb,sex_pclass,0.81146,single
-cb,is_child,0.82604,single
+cb,is_child,0.82492,single
 cb,women_children_first,0.82604,single
 cb,baseline,0.81709,baseline
