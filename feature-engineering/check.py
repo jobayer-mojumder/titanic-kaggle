@@ -11,7 +11,6 @@ for i in range(1, 12):
         "cb": pd.read_csv(f"submissions/5_cb/submission_cb_{i}.csv")["Survived"],
     }
 
-    # Group models with identical predictions
     matched_groups = []
     visited = set()
 
@@ -30,4 +29,4 @@ for i in range(1, 12):
     if matched_groups:
         print(f"\n🔍 Feature #{i} — Matching Predictions:")
         for group in matched_groups:
-            print("✅ " + " == ".join(group))
+            print(f"✅ {' == '.join(group)} ({len(group)})")
