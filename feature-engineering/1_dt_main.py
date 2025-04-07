@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
 from modules.preprocessing import preprocess
 from modules.feature_implementation import FEATURE_MAP
-from modules.summary import log_results, compare_with_kaggle
+from modules.summary import log_results
 from modules.evaluation import evaluate_model
 
 
@@ -45,10 +45,17 @@ def run_model(feature_nums, use_cv=True):
         log_results("dt", selected_features, acc, out_file)
 
 
-def run_all_combinations():
+def run_combinations():
     from modules.combination import DT_COMBINATIONS
 
     for combo in DT_COMBINATIONS:
+        run_model(combo)
+
+
+def run_all_general_combinations():
+    from modules.combination import GENERAL_FEATURE_COMBINATIONS
+
+    for combo in GENERAL_FEATURE_COMBINATIONS:
         run_model(combo)
 
 
@@ -60,5 +67,6 @@ def run_all_single_feature():
 
 
 if __name__ == "__main__":
-    # run_all_combinations()
-    run_all_single_feature()
+    # run_combinations()
+    # run_all_single_feature()
+    run_all_general_combinations()

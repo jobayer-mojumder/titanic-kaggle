@@ -46,10 +46,17 @@ def run_model(feature_nums, use_cv=True):
         log_results("cb", selected_features, acc, out_file)
 
 
-def run_all_combinations():
+def run_combinations():
     from modules.combination import CB_COMBINATIONS
 
     for combo in CB_COMBINATIONS:
+        run_model(combo)
+
+
+def run_all_general_combinations():
+    from modules.combination import GENERAL_FEATURE_COMBINATIONS
+
+    for combo in GENERAL_FEATURE_COMBINATIONS:
         run_model(combo)
 
 
@@ -61,5 +68,6 @@ def run_all_single_feature():
 
 
 if __name__ == "__main__":
-    # run_all_combinations()
-    run_all_single_feature()
+    # run_combinations()
+    # run_all_single_feature()
+    run_all_general_combinations()

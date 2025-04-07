@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.metrics import accuracy_score
 import os
 
-from modules.constant import KAGGLE_BASELINE_SCORE
+from modules.constant import KAGGLE_BASELINE_SCORE, BASELINE_SCORE
 
 
 def truncate_float(value, digits=5):
@@ -29,18 +29,14 @@ def compare_with_baseline(score, baseline, label="Accuracy"):
 
 def log_results(model_name, feature_list, accuracy, submission_file=None):
     local_output_file = "results_summary.csv"
-    if not feature_list:
-        mode = "baseline"
-    elif len(feature_list) == 1:
-        mode = "single"
-    else:
-        mode = "combo"
+
+    improvement = accuracy - BASELINE_SCORE[model_name]
 
     row = {
         "model": model_name,
         "features": ", ".join(feature_list) if feature_list else "baseline",
         "accuracy": accuracy,
-        "mode": mode,
+        "improvement": truncate_float(improvement),
     }
 
     if os.path.exists(local_output_file) and os.path.getsize(local_output_file) > 0:
@@ -80,11 +76,13 @@ def compare_with_kaggle(submission_file, model_name, features):
             acc, KAGGLE_BASELINE_SCORE[model_name], label="Kaggle Accuracy"
         )
 
+    improvement = acc - KAGGLE_BASELINE_SCORE[model_name]
     # Log to CSV
     row = {
         "model": model_name,
         "features": ", ".join(features) if features else "baseline",
         "accuracy_vs_kaggle": acc,
+        "improvement": truncate_float(improvement),
     }
 
     if os.path.exists(output_file) and os.path.getsize(output_file) > 0:
