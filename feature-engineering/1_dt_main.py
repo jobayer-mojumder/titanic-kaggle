@@ -2,126 +2,63 @@
 import os
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.impute import SimpleImputer
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder
-from modules.feature_implementation import (
-    FEATURE_FUNCTIONS,
-    FEATURE_MAP,
-    SELECTED_FEATURES,
-)
-from modules.combination import GENERAL_FEATURE_COMBINATIONS, DT_COMBINATIONS
+from modules.preprocessing import preprocess
+from modules.feature_implementation import FEATURE_MAP
+from modules.summary import log_results
+from modules.evaluation import evaluate_model
 
 
-def preprocess(df, features_to_use, is_train=True, ref_columns=None):
-    if not features_to_use:
-        features_to_use = []
-
-    for f in features_to_use:
-        df = FEATURE_FUNCTIONS[f](df)
-
-    df = df.drop(["PassengerId", "Name", "Ticket", "Cabin"], axis=1, errors="ignore")
-
-    if "Sex" in df.columns:
-        df["Sex"] = df["Sex"].map({"female": 1, "male": 0})
-    if "Pclass" in df.columns:
-        df["Pclass"] = df["Pclass"].astype(str)
-
-    if not SELECTED_FEATURES:
-        numerical_features = ["Age", "SibSp", "Parch", "Fare", "Sex"]
-        categorical_features = ["Pclass", "Embarked"]
-    else:
-        known_numeric = [
-            "Age",
-            "SibSp",
-            "Parch",
-            "Fare",
-            "Sex",
-            "SexPclass",
-            "FarePerPerson",
-            "FamilySize",
-            "IsAlone",
-            "IsChild",
-            "IsMother",
-            "WomenChildrenFirst",
-            "HasCabin",
-        ]
-        numerical_features = [col for col in known_numeric if col in df.columns]
-        categorical_features = df.select_dtypes(
-            include=["object", "category"]
-        ).columns.tolist()
-
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ("num", SimpleImputer(strategy="median"), numerical_features),
-            (
-                "cat",
-                Pipeline(
-                    [
-                        ("imputer", SimpleImputer(strategy="most_frequent")),
-                        ("onehot", OneHotEncoder(handle_unknown="ignore")),
-                    ]
-                ),
-                categorical_features,
-            ),
-        ]
-    )
-
-    if is_train:
-        X = preprocessor.fit_transform(df)
-        return X, preprocessor
-    else:
-        X = ref_columns.transform(df)
-        return X, ref_columns
-
-
-def run_dt(feature_nums):
-    global SELECTED_FEATURES
-    SELECTED_FEATURES = [FEATURE_MAP[n] for n in feature_nums]
-    print(f"🚀 Running Decision Tree with: {SELECTED_FEATURES or 'Baseline only'}")
+def run_model(feature_nums, use_cv=True):
+    selected_features = [FEATURE_MAP[n] for n in feature_nums]
+    print(f"🚀 Running dt with: {selected_features or 'Baseline only'}")
 
     train = pd.read_csv("../train.csv")
     test = pd.read_csv("../test.csv")
 
     y = train["Survived"]
-    train = train.drop(columns=["Survived"])
+    train.drop(columns=["Survived"], inplace=True)
 
-    X_train, preproc = preprocess(train.copy(), SELECTED_FEATURES, is_train=True)
+    X_train, preproc = preprocess(train.copy(), selected_features, is_train=True)
     X_test, _ = preprocess(
-        test.copy(), SELECTED_FEATURES, is_train=False, ref_columns=preproc
+        test.copy(), selected_features, is_train=False, ref_pipeline=preproc
     )
 
     model = DecisionTreeClassifier(max_depth=3, random_state=42)
     model.fit(X_train, y)
     preds = model.predict(X_test)
 
-    os.makedirs("submissions/1_Decision-Tree", exist_ok=True)
-    suffix = "base" if not feature_nums else "_".join(map(str, feature_nums))
-    filename = f"submissions/1_Decision-Tree/submission_dt_{suffix}.csv"
+    if use_cv:
+        acc = evaluate_model(model, X_train, y, model_name="dt")
+    else:
+        acc = None
+
+    suffix = "_".join(map(str, feature_nums)) if feature_nums else "base"
+    out_dir = f"submissions/1_dt"
+    os.makedirs(out_dir, exist_ok=True)
+    out_file = f"{out_dir}/submission_dt_{suffix}.csv"
     pd.DataFrame({"PassengerId": test["PassengerId"], "Survived": preds}).to_csv(
-        filename, index=False
+        out_file, index=False
     )
-    print(f"✅ Saved to {filename}")
+
+    print(f"✅ Saved predictions to {out_file}")
+    if acc is not None:
+        log_results("dt", selected_features, acc)
 
 
-def run_all_single_features():
-    for i in range(1, len(FEATURE_MAP) + 1):
-        run_dt([i])
-    run_dt([])
+def run_all_combinations():
+    from modules.combination import DT_COMBINATIONS
+
+    for combo in DT_COMBINATIONS:
+        run_model(combo)
 
 
-def run_general_combinations():
-    for combination in GENERAL_FEATURE_COMBINATIONS:
-        run_dt(combination)
+def run_all_single_feature():
+    for i in FEATURE_MAP.keys():
+        run_model([i], use_cv=True)
 
-
-def run_dt_combinations():
-    for combination in DT_COMBINATIONS:
-        run_dt(combination)
+    run_model([], use_cv=True)
 
 
 if __name__ == "__main__":
-    # run_all_single_features()
-    # run_general_combinations()
-    run_dt_combinations()
+    # run_all_combinations()
+    run_all_single_feature()
