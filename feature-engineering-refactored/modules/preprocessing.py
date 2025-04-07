@@ -61,19 +61,24 @@ def build_pipeline(numerical, categorical):
 def preprocess(df, feature_names, is_train=True, ref_pipeline=None):
     df = df.copy()
 
-    # Data cleaning
+    # 🧼 Data cleaning
     if "Sex" in df.columns:
         df["Sex"] = df["Sex"].map({"female": 1, "male": 0})
     if "Pclass" in df.columns:
         df["Pclass"] = df["Pclass"].astype(str)
+    if "Embarked" in df.columns:
+        df["Embarked"] = df["Embarked"].fillna("S")
 
-    # Apply selected engineered features
+    # Apply engineered features
     df = apply_features(df, feature_names)
 
-    # Drop unused
+    # Drop irrelevant columns
     df = df.drop(["PassengerId", "Name", "Ticket", "Cabin"], axis=1, errors="ignore")
 
+    # Extract column types
     numeric, categorical = get_column_types(df, feature_names)
+
+    # Build pipeline
     pipeline = build_pipeline(numeric, categorical)
 
     if is_train:

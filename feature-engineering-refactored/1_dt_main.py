@@ -33,9 +33,9 @@ def run_model(feature_nums, use_cv=True):
         acc = None
 
     suffix = "_".join(map(str, feature_nums)) if feature_nums else "base"
-    out_dir = f"submissions/dt"
+    out_dir = f"submissions/1_dt"
     os.makedirs(out_dir, exist_ok=True)
-    out_file = f"{out_dir}/submission_{suffix}.csv"
+    out_file = f"{out_dir}/submission_dt_{suffix}.csv"
     pd.DataFrame({"PassengerId": test["PassengerId"], "Survived": preds}).to_csv(
         out_file, index=False
     )

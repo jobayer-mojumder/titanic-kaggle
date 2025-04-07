@@ -1,0 +1,1 @@
+python 1_dt_main.py && python 2_xgb_main.py && python 3_rf_main.py && python 4_lgbm_main.py && python 5_cb_main.py
