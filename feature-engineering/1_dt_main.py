@@ -67,6 +67,6 @@ def run_all_single_feature():
 
 
 if __name__ == "__main__":
-    # run_combinations()
-    run_all_single_feature()
-    run_all_general_combinations()
+    run_combinations()
+    # run_all_single_feature()
+    # run_all_general_combinations()
