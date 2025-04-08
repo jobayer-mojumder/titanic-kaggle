@@ -1,0 +1,6 @@
+model,features,accuracy_vs_kaggle,improvement,model_name
+dt,"is_alone, age_group",0.78468,0.00957,Decision Tree
+xgb,"title, age_group, has_cabin",0.79186,0.04066,XGBoost
+rf,"title, deck",0.78947,0.02392,Random Forest
+lgbm,"title, has_cabin, is_mother, is_child",0.79186,0.02392,LightGBM
+cb,"age_group, fare_per_person, has_cabin, is_mother",0.79425,0.01195,CatBoost

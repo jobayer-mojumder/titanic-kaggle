@@ -70,7 +70,12 @@ def run_all_single_feature():
     run_model([], use_cv=True)
 
 
+def run_baseline():
+    run_model([], use_cv=True)
+
+
 if __name__ == "__main__":
     # run_combinations()
     # run_all_single_feature()
-    run_all_general_combinations()
+    # run_all_general_combinations()
+    run_baseline()

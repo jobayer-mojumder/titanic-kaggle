@@ -5,4 +5,3 @@ feature-engineering/modules/__pycache__
 kaggle_results.csv
 results_summary.csv
 feature-engineering/catboost_info
-# combination-results/
