@@ -17,7 +17,7 @@ FEATURE_MAP = {
 
 FEATURE_META = {
     "Title": {"type": "categorical"},
-    "FamilySize": {"type": "numeric"},
+    "FamilySize": {"type": "categorical"},
     "IsAlone": {"type": "numeric"},
     "AgeGroup": {"type": "categorical"},
     "FarePerPerson": {"type": "numeric"},
@@ -60,7 +60,14 @@ def add_title(df):
 
 
 def add_family_size(df):
-    df["FamilySize"] = compute_family_size(df)
+    family_size = compute_family_size(df)
+    df["FamilySize"] = pd.cut(
+        family_size,
+        bins=[0, 1, 4, 6, float("inf")],
+        labels=["Alone", "Small", "Medium", "Large"],
+        right=True,
+        include_lowest=True,
+    )
     return df
 
 
