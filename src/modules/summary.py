@@ -5,7 +5,7 @@ from sklearn.metrics import accuracy_score
 from modules.constant import KAGGLE_BASELINE_SCORE, BASELINE_SCORE
 
 SUMMARY_FILE = "results/results_summary.csv"
-KAGGLE_FILE = "../perfect_submission.csv"
+KAGGLE_FILE = "data/perfect_submission.csv"
 
 model_index_map = {
     "dt": 1,
