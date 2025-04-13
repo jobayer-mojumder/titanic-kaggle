@@ -50,3 +50,11 @@ DEFAULT_MODELS = {
         iterations=100, depth=3, learning_rate=0.1, random_seed=42, verbose=0
     ),
 }
+
+MODEL_ORDER = {
+    "Decision Tree": 1,
+    "XGBoost": 2,
+    "Random Forest": 3,
+    "LightGBM": 4,
+    "CatBoost": 5,
+}
