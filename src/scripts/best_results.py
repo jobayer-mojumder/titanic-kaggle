@@ -2,8 +2,22 @@
 # type: ignore
 import pandas as pd
 import os
+import sys
 
-# Define file paths for each model
+# --- CLI argument handling ---
+if len(sys.argv) > 1:
+    arg = sys.argv[1].lower()
+    if arg in ("--help", "-h"):
+        print("Usage: python best_results_safe.py [tune]")
+        print("Pass 'true' or '1' to enable tuning mode.")
+        sys.exit(0)
+    tune = arg in ("true", "1")
+else:
+    tune = False
+
+print(f"🔍 Mode: {'TUNING' if tune else 'NORMAL'}")
+
+# --- Model file map ---
 file_paths = {
     "Decision Tree": "1_dt_comb.csv",
     "XGBoost": "2_xgb_comb.csv",
@@ -12,12 +26,13 @@ file_paths = {
     "CatBoost": "5_cb_comb.csv",
 }
 
-# Store best result rows
 best_results = []
 
-# Loop through each model and file
 for model, path in file_paths.items():
-    read_path = os.path.join("../combination-results", path)
+    read_path = os.path.join(
+        "../combination-results/tuning" if tune else "../combination-results",
+        path.replace("_comb", "_tune_comb") if tune else path,
+    )
 
     if not os.path.exists(read_path):
         print(f"⚠️ File not found: {read_path}")
@@ -43,7 +58,7 @@ for model, path in file_paths.items():
     except Exception as e:
         print(f"❌ Error processing {read_path}: {e}")
 
-# Create DataFrame and save results
+# --- Final output ---
 if best_results:
     best_df = pd.DataFrame(best_results)
     print("\n✅ Best results per model:")

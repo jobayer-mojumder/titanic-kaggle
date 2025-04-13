@@ -6,6 +6,7 @@ from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 from catboost import CatBoostClassifier
 import os
+import warnings
 
 PARAM_GRIDS = {
     "dt": {
@@ -44,29 +45,29 @@ BASE_MODELS = {
     "dt": DecisionTreeClassifier(random_state=42),
     "rf": RandomForestClassifier(random_state=42),
     "xgb": XGBClassifier(eval_metric="logloss", random_state=42),
-    "lgbm": LGBMClassifier(random_state=42),
+    "lgbm": LGBMClassifier(random_state=42, verbose=-1),
     "cb": CatBoostClassifier(verbose=0, random_seed=42),
 }
 
 
 def tune_model(X, y, model_key, cv=5, scoring="accuracy"):
-    """
-    Run GridSearchCV and return the best model.
-    Optionally logs all results to a CSV.
-    """
     print(f"🔍 Tuning model: {model_key.upper()}")
 
     model = BASE_MODELS[model_key]
     param_grid = PARAM_GRIDS[model_key]
 
     grid = GridSearchCV(model, param_grid, cv=cv, scoring=scoring, verbose=1, n_jobs=-1)
-    grid.fit(X, y)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=FutureWarning)
+        warnings.simplefilter("ignore", category=UserWarning)
+        grid.fit(X, y)
 
     print(f"✅ Best params: {grid.best_params_}")
     print(f"📈 Best score: {grid.best_score_:.5f}")
 
     # Save tuning results to CSV results/ folder, if not created, create it
-    results_dir = "results/"
+    results_dir = "results/tuning"
     os.makedirs(results_dir, exist_ok=True)
     results_file = os.path.join(results_dir, f"{model_key}_tuning_results.csv")
 

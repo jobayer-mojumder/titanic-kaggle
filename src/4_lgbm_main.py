@@ -12,6 +12,7 @@ from modules.constant import DEFAULT_MODELS
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=Warning)
+warnings.filterwarnings("ignore", category=UserWarning)
 
 
 def run_model(feature_nums, use_cv=True, tune=False):
@@ -85,9 +86,31 @@ def run_baseline_tune():
     run_model([], use_cv=True, tune=True)
 
 
+def run_all_single_feature_tune():
+    for i in FEATURE_MAP.keys():
+        run_model([i], use_cv=True, tune=True)
+
+
+def run_combinations_tune():
+    from modules.combination import LGBM_COMBINATIONS
+
+    for combo in LGBM_COMBINATIONS:
+        run_model(combo, tune=True)
+
+
+def run_all_general_combinations_tune():
+    from modules.combination import GENERAL_FEATURE_COMBINATIONS
+
+    for combo in GENERAL_FEATURE_COMBINATIONS:
+        run_model(combo, tune=True)
+
+
 if __name__ == "__main__":
     # run_combinations()
     # run_all_single_feature()
-    run_all_general_combinations()
+    # run_all_general_combinations()
     # run_baseline()
     # run_baseline_tune()
+    # run_all_single_feature_tune()
+    # run_combinations_tune()
+    run_all_general_combinations_tune()

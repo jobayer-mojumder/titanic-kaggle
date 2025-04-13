@@ -81,9 +81,31 @@ def run_baseline_tune():
     run_model([], use_cv=True, tune=True)
 
 
+def run_all_single_feature_tune():
+    for i in FEATURE_MAP.keys():
+        run_model([i], use_cv=True, tune=True)
+
+
+def run_combinations_tune():
+    from modules.combination import CB_COMBINATIONS
+
+    for combo in CB_COMBINATIONS:
+        run_model(combo, tune=True)
+
+
+def run_all_general_combinations_tune():
+    from modules.combination import GENERAL_FEATURE_COMBINATIONS
+
+    for combo in GENERAL_FEATURE_COMBINATIONS:
+        run_model(combo, tune=True)
+
+
 if __name__ == "__main__":
     # run_combinations()
     # run_all_single_feature()
-    run_all_general_combinations()
+    # run_all_general_combinations()
     # run_baseline()
     # run_baseline_tune()
+    # run_all_single_feature_tune()
+    # run_combinations_tune()
+    run_all_general_combinations_tune()
