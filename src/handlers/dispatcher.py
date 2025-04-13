@@ -10,6 +10,12 @@ from modules.result_summary import run_best_results
 from modules.combination_sampler import run_balanced_combinations
 import time
 
+BLUE = "\033[94m"
+GREEN = "\033[92m"
+CYAN = "\033[96m"
+BOLD = "\033[1m"
+RESET = "\033[0m"
+
 
 def handle_choice(choice, run_model):
     start = time.time()
@@ -102,13 +108,15 @@ def handle_choice(choice, run_model):
 
 
 def print_menu(last_activity=None, last_duration=None):
-    print("\n🎯 Select an experiment to run:\n")
+    print(f"\n{BOLD}{CYAN}🎯 Select an experiment to run:{RESET}\n")
     if last_activity:
-        print(f"👀 Last activity: {last_activity}")
+        print(f"{GREEN}🕘 Last activity:{RESET} {last_activity}")
         if last_duration is not None:
-            print(f"⏱️ Time taken: {last_duration:.2f} seconds\n")
-    print("┌────────────────────────────────┬─────────────────────────────────┐")
-    print("│ Feature Engineering            │ Model Tuning                    │")
+            print(f"{BLUE}⏱️ Time taken:{RESET} {last_duration:.2f} seconds")
+    print("\n┌────────────────────────────────┬─────────────────────────────────┐")
+    print(
+        f"│ {BLUE}Feature Engineering{RESET}            │ {GREEN}Model Tuning{RESET}                    │"
+    )
     print("├────────────────────────────────┼─────────────────────────────────┤")
     print("│ 1. Single features             │ 7. Single features              │")
     print("│ 2. General combinations        │ 8. General combinations         │")
