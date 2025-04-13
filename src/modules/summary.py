@@ -28,7 +28,7 @@ def compare_with_baseline(score, baseline, label="Accuracy"):
 
 
 def log_results(model_name, feature_list, accuracy, submission_file=None):
-    local_output_file = "results_summary.csv"
+    local_output_file = "results/results_summary.csv"
 
     improvement = accuracy - BASELINE_SCORE[model_name]
 
@@ -53,7 +53,7 @@ def log_results(model_name, feature_list, accuracy, submission_file=None):
 
 def compare_with_kaggle(submission_file, model_name, features):
     kaggle_file = "../perfect_submission.csv"
-    output_file = "kaggle_results.csv"
+    output_file = "results/kaggle_results.csv"
 
     if not os.path.exists(kaggle_file):
         print("⚠️ Kaggle perfect submission not found. Skipping comparison.")

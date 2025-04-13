@@ -1,7 +1,6 @@
 .DS_Store
 .csv
-feature-engineering/submissions/*
-feature-engineering/modules/__pycache__
-kaggle_results.csv
-results_summary.csv
-feature-engineering/catboost_info
+src/submissions/*
+src/modules/__pycache__
+src/results/*
+src/catboost_info

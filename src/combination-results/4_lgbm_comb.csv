@@ -561,7 +561,7 @@ lgbm,"title, family_size, is_alone, fare_per_person, has_cabin",0.77033,0.00239
 lgbm,"title, family_size, is_alone, fare_per_person, is_mother",0.75837,-0.00956
 lgbm,"title, family_size, is_alone, fare_per_person, sex_pclass",0.76315,-0.00478
 lgbm,"title, family_size, is_alone, fare_per_person, is_child",0.75358,-0.01435
-lgbm,"title, family_size, is_alone, fare_per_person, women_children_first",0.77272,0.00478
+lgbm,"title, family_size, is_alone, fare_per_person, women_children_first",0.76794,0.0
 lgbm,"title, family_size, is_alone, deck, has_cabin",0.76794,0.0
 lgbm,"title, family_size, is_alone, deck, is_mother",0.77272,0.00478
 lgbm,"title, family_size, is_alone, deck, sex_pclass",0.76794,0.0
@@ -1043,9 +1043,9 @@ lgbm,"title, family_size, is_alone, fare_per_person, has_cabin, is_child",0.7679
 lgbm,"title, family_size, is_alone, fare_per_person, has_cabin, women_children_first",0.77511,0.00717
 lgbm,"title, family_size, is_alone, fare_per_person, is_mother, sex_pclass",0.76794,0.0
 lgbm,"title, family_size, is_alone, fare_per_person, is_mother, is_child",0.76555,-0.00239
-lgbm,"title, family_size, is_alone, fare_per_person, is_mother, women_children_first",0.77272,0.00478
+lgbm,"title, family_size, is_alone, fare_per_person, is_mother, women_children_first",0.77511,0.00717
 lgbm,"title, family_size, is_alone, fare_per_person, sex_pclass, is_child",0.75358,-0.01435
-lgbm,"title, family_size, is_alone, fare_per_person, sex_pclass, women_children_first",0.76794,0.0
+lgbm,"title, family_size, is_alone, fare_per_person, sex_pclass, women_children_first",0.77272,0.00478
 lgbm,"title, family_size, is_alone, fare_per_person, is_child, women_children_first",0.76794,0.0
 lgbm,"title, family_size, is_alone, deck, has_cabin, is_mother",0.77272,0.00478
 lgbm,"title, family_size, is_alone, deck, has_cabin, sex_pclass",0.76794,0.0
@@ -1525,9 +1525,9 @@ lgbm,"title, family_size, is_alone, fare_per_person, has_cabin, sex_pclass, is_c
 lgbm,"title, family_size, is_alone, fare_per_person, has_cabin, sex_pclass, women_children_first",0.77511,0.00717
 lgbm,"title, family_size, is_alone, fare_per_person, has_cabin, is_child, women_children_first",0.77272,0.00478
 lgbm,"title, family_size, is_alone, fare_per_person, is_mother, sex_pclass, is_child",0.75358,-0.01435
-lgbm,"title, family_size, is_alone, fare_per_person, is_mother, sex_pclass, women_children_first",0.77272,0.00478
+lgbm,"title, family_size, is_alone, fare_per_person, is_mother, sex_pclass, women_children_first",0.77033,0.00239
 lgbm,"title, family_size, is_alone, fare_per_person, is_mother, is_child, women_children_first",0.77272,0.00478
-lgbm,"title, family_size, is_alone, fare_per_person, sex_pclass, is_child, women_children_first",0.76555,-0.00239
+lgbm,"title, family_size, is_alone, fare_per_person, sex_pclass, is_child, women_children_first",0.77272,0.00478
 lgbm,"title, family_size, is_alone, deck, has_cabin, is_mother, sex_pclass",0.77272,0.00478
 lgbm,"title, family_size, is_alone, deck, has_cabin, is_mother, is_child",0.76076,-0.00717
 lgbm,"title, family_size, is_alone, deck, has_cabin, is_mother, women_children_first",0.77272,0.00478
