@@ -47,13 +47,11 @@ def run_best_results(tune: bool = False):
                 print(f"{YELLOW}⚠️  File is empty: {file_path}{RESET}")
                 continue
 
-            if "accuracy_vs_kaggle" not in df.columns:
-                print(
-                    f"{RED}❌ Missing column 'accuracy_vs_kaggle' in: {file_path}{RESET}"
-                )
+            if "kaggle_score" not in df.columns:
+                print(f"{RED}❌ Missing column 'kaggle_score' in: {file_path}{RESET}")
                 continue
 
-            best_row = df.loc[df["accuracy_vs_kaggle"].idxmax()].copy()
+            best_row = df.loc[df["kaggle_score"].idxmax()].copy()
             best_row["model_name"] = model
             best_row["model"] = filename.split("_")[0]
             best_row["model_order"] = MODEL_ORDER.get(model, 999)
@@ -84,7 +82,7 @@ def run_best_results(tune: bool = False):
             "model_name",
             "features",
             "feature_nums",
-            "accuracy_vs_kaggle",
+            "kaggle_score",
             "improvement",
         ]
         other_cols = [

@@ -36,13 +36,13 @@ def run_balanced_combinations(tune: bool = False):
             df = pd.read_csv(path)
             if (
                 df.empty
-                or "accuracy_vs_kaggle" not in df.columns
+                or "kaggle_score" not in df.columns
                 or "features" not in df.columns
             ):
                 print(f"⚠️ Invalid or empty data in: {path}")
                 continue
 
-            df = df.sort_values("accuracy_vs_kaggle").reset_index(drop=True)
+            df = df.sort_values("kaggle_score").reset_index(drop=True)
             total = len(df)
 
             top = df.tail(3)
@@ -91,7 +91,7 @@ def run_balanced_combinations(tune: bool = False):
             "model_name",
             "features",
             "feature_nums",
-            "accuracy_vs_kaggle",
+            "kaggle_score",
             "improvement",
         ]
         final_df = final_df[

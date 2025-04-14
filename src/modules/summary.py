@@ -98,19 +98,47 @@ def update_summary_csv(mode, row):
 
     summary_row = {
         "model": row.get("model"),
-        "type": "tuned" if row.get("tuned") else "feature",
         "features": row.get("feature_nums", "baseline"),
+        "tuned": row.get("tuned", 0),
         "tuning_params": row.get("params", None),
-        "cv_accuracy": row.get("accuracy") if mode == "local" else None,
-        "cv_std": row.get("std") if mode == "local" else None,
-        "kaggle_score": row.get("accuracy_vs_kaggle") if mode == "kaggle" else None,
         "improvement": row.get("improvement"),
+        "baseline": row.get("baseline"),
     }
+
+    if mode == "local":
+        summary_row["cv_accuracy"] = row.get("accuracy")
+        summary_row["cv_std"] = row.get("std")
+    else:
+        summary_row["kaggle_score"] = row.get("kaggle_score")
+
+    # Define column order per mode
+    column_order_local = [
+        "model",
+        "features",
+        "baseline",
+        "cv_accuracy",
+        "improvement",
+        "cv_std",
+        "tuned",
+        "tuning_params",
+    ]
+    column_order_kaggle = [
+        "model",
+        "features",
+        "baseline",
+        "kaggle_score",
+        "improvement",
+        "tuned",
+        "tuning_params",
+    ]
+
+    column_order = column_order_local if mode == "local" else column_order_kaggle
+    summary_row = {col: summary_row.get(col) for col in column_order}
 
     if os.path.exists(file_path):
         df = pd.read_csv(file_path)
     else:
-        df = pd.DataFrame()
+        df = pd.DataFrame(columns=column_order)
 
     df = pd.concat([df, pd.DataFrame([summary_row])], ignore_index=True)
     df.to_csv(file_path, index=False)
@@ -139,7 +167,7 @@ def log_results(
         "accuracy": truncate_float(accuracy),
         "std": truncate_float(std) if std is not None else None,
         "improvement": truncate_float(improvement),
-        "tuned": tuned,
+        "tuned": 1 if tuned else 0,
         "params": str(params) if params else None,
     }
 
@@ -189,9 +217,9 @@ def compare_with_kaggle(
         "features": get_feature_names(features),
         "feature_nums": ", ".join(map(str, features)) if features else "baseline",
         "baseline": KAGGLE_BASELINE_SCORE.get(model_name, 0),
-        "accuracy_vs_kaggle": acc,
+        "kaggle_score": acc,
         "improvement": truncate_float(improvement),
-        "tuned": tuned,
+        "tuned": 1 if tuned else 0,
         "params": str(params) if params else None,
     }
 
