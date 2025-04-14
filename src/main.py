@@ -15,7 +15,7 @@ warnings.filterwarnings("ignore")
 
 def run_model(model_key, feature_nums, tune=False):
     selected_features = [FEATURE_MAP[n] for n in feature_nums]
-    print(f"\n🚀 Running {model_key} with: {selected_features or 'Baseline only'}")
+    print(f"\n\n🚀 Running {model_key} with: {selected_features or 'Baseline only'}")
 
     train = pd.read_csv("data/train.csv")
     test = pd.read_csv("data/test.csv")

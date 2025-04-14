@@ -2,6 +2,7 @@ import os
 import pandas as pd
 from sklearn.metrics import accuracy_score
 from modules.constant import KAGGLE_BASELINE_SCORE, BASELINE_SCORE
+from modules.feature_implementation import FEATURE_MAP
 
 # Mapping model name to index
 model_index_map = {
@@ -11,6 +12,8 @@ model_index_map = {
     "lgbm": 4,
     "cb": 5,
 }
+
+FEATURE_NAME_TO_NUM = {v.lower(): k for k, v in FEATURE_MAP.items()}
 
 KAGGLE_FILE = "data/perfect_submission.csv"
 
@@ -34,6 +37,28 @@ def compare_with_baseline(score, baseline, label="Accuracy"):
         print(
             f"\033[91m⚠️  {label} dropped: {score} vs baseline {baseline} = -{(baseline - score):.5f} \033[0m"
         )
+
+
+def normalize_feature_list(feature_list):
+    if not feature_list:
+        return []
+    normalized = []
+    for f in feature_list:
+        try:
+            normalized.append(int(f))
+        except ValueError:
+            f_lower = str(f).lower()
+            if f_lower in FEATURE_NAME_TO_NUM:
+                normalized.append(FEATURE_NAME_TO_NUM[f_lower])
+            else:
+                print(f"⚠️ Unknown feature: {f}, skipping")
+    return normalized
+
+
+def get_feature_names(feature_list):
+    if not feature_list:
+        return "baseline"
+    return ", ".join(FEATURE_MAP.get(int(f), f"F{f}") for f in feature_list)
 
 
 def get_result_path(base_dir, model_name, feature_list, tuned=False):
@@ -72,10 +97,15 @@ def log_results(
     params=None,
     std=None,
 ):
+    feature_list = normalize_feature_list(feature_list)
     improvement = accuracy - BASELINE_SCORE.get(model_name, 0)
+
     row = {
         "model": model_name,
-        "features": ", ".join(feature_list) if feature_list else "baseline",
+        "feature_nums": (
+            ", ".join(map(str, feature_list)) if feature_list else "baseline"
+        ),
+        "features": get_feature_names(feature_list),
         "baseline": BASELINE_SCORE.get(model_name, 0),
         "accuracy": truncate_float(accuracy),
         "std": truncate_float(std) if std is not None else None,
@@ -101,6 +131,8 @@ def log_results(
 def compare_with_kaggle(
     submission_file, model_name, features, tuned=False, params=None
 ):
+    features = normalize_feature_list(features)
+
     if not os.path.exists(KAGGLE_FILE):
         print("⚠️ Kaggle perfect submission not found. Skipping comparison.")
         return None
@@ -124,7 +156,8 @@ def compare_with_kaggle(
 
     row = {
         "model": model_name,
-        "features": ", ".join(features) if features else "baseline",
+        "feature_nums": ", ".join(map(str, features)) if features else "baseline",
+        "features": get_feature_names(features),
         "baseline": KAGGLE_BASELINE_SCORE.get(model_name, 0),
         "accuracy_vs_kaggle": acc,
         "improvement": truncate_float(improvement),
