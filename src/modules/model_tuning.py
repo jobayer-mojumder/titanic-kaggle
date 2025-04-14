@@ -67,15 +67,15 @@ def tune_model(X, y, model_key, cv=5, scoring="accuracy"):
     print(f"📈 Best score: {grid.best_score_:.5f}")
 
     # Save tuning results to CSV results/ folder, if not created, create it
-    results_dir = "results/tuning"
-    os.makedirs(results_dir, exist_ok=True)
-    results_file = os.path.join(results_dir, f"{model_key}_tuning_results.csv")
+    # results_dir = "results/tuning"
+    # os.makedirs(results_dir, exist_ok=True)
+    # results_file = os.path.join(results_dir, f"{model_key}_tuning_results.csv")
 
-    if results_file:
-        df = pd.DataFrame(grid.cv_results_)
-        df.to_csv(results_file, index=False)
-        print(f"🗘️ Saved tuning results to {results_file}")
-    else:
-        print("⚠️ No tuning results to save.")
+    # if results_file:
+    #     df = pd.DataFrame(grid.cv_results_)
+    #     df.to_csv(results_file, index=False)
+    #     print(f"🗘️ Saved tuning results to {results_file}")
+    # else:
+    #     print("⚠️ No tuning results to save.")
 
-    return grid.best_estimator_
+    return grid.best_estimator_, grid.best_params_

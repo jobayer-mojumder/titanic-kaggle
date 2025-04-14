@@ -24,11 +24,12 @@ def run_model(model_key, feature_nums, tune=False):
         test.copy(), selected_features, is_train=False, ref_pipeline=preproc
     )
 
-    model = (
-        tune_model(X_train, y, model_key=model_key)
-        if tune
-        else DEFAULT_MODELS[model_key]
-    )
+    if tune:
+        model, best_params = tune_model(X_train, y, model_key=model_key)
+    else:
+        model = DEFAULT_MODELS[model_key]
+        best_params = None
+
     model.fit(X_train, y)
     preds = model.predict(X_test)
 
@@ -37,8 +38,16 @@ def run_model(model_key, feature_nums, tune=False):
     pd.DataFrame({"PassengerId": test["PassengerId"], "Survived": preds}).to_csv(
         out_file, index=False
     )
-    print(f"✅ Saved predictions to {out_file}")
-    log_results(model_key, selected_features, acc, out_file, tuned=tune, std=std)
+    print(f"✅ Saved predictions to {os.path.basename(out_file)}")
+    log_results(
+        model_key,
+        selected_features,
+        acc,
+        out_file,
+        tuned=tune,
+        params=best_params,
+        std=std,
+    )
 
 
 def main():

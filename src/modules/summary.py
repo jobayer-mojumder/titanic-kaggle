@@ -53,7 +53,13 @@ def get_submission_path(model_key, feature_nums):
 
 
 def log_results(
-    model_name, feature_list, accuracy, submission_file=None, tuned=False, std=None
+    model_name,
+    feature_list,
+    accuracy,
+    submission_file=None,
+    tuned=False,
+    params=None,
+    std=None,
 ):
     os.makedirs("results", exist_ok=True)
 
@@ -65,6 +71,7 @@ def log_results(
         "std": truncate_float(std) if std is not None else None,
         "improvement": truncate_float(improvement),
         "tuned": tuned,
+        "params": str(params) if params else None,
     }
 
     if os.path.exists(SUMMARY_FILE) and os.path.getsize(SUMMARY_FILE) > 0:
@@ -75,10 +82,14 @@ def log_results(
     df.to_csv(SUMMARY_FILE, index=False)
 
     if submission_file:
-        compare_with_kaggle(submission_file, model_name, feature_list, tuned=tuned)
+        compare_with_kaggle(
+            submission_file, model_name, feature_list, tuned=tuned, params=params
+        )
 
 
-def compare_with_kaggle(submission_file, model_name, features, tuned=False):
+def compare_with_kaggle(
+    submission_file, model_name, features, tuned=False, params=None
+):
     if not os.path.exists(KAGGLE_FILE):
         print("⚠️ Kaggle perfect submission not found. Skipping comparison.")
         return None
@@ -111,6 +122,7 @@ def compare_with_kaggle(submission_file, model_name, features, tuned=False):
         "accuracy_vs_kaggle": acc,
         "improvement": truncate_float(improvement),
         "tuned": tuned,
+        "params": str(params) if params else None,
     }
 
     if os.path.exists(output_file) and os.path.getsize(output_file) > 0:
