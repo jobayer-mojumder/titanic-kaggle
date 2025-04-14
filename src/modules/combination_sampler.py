@@ -9,9 +9,9 @@ def run_balanced_combinations(tune: bool = False):
     print(f"🔍 Mode: {'TUNING' if tune else 'NORMAL'}")
 
     base_dir = (
-        "kaggle-results/tuning-combinations"
+        "results/kaggle/tuning-combinations"
         if tune
-        else "kaggle-results/features-combinations"
+        else "results/kaggle/features-combinations"
     )
     suffix = "_comb_tuned.csv" if tune else "_comb.csv"
 

@@ -1,12 +1,9 @@
-# type: ignore
 import os
 import pandas as pd
 from sklearn.metrics import accuracy_score
 from modules.constant import KAGGLE_BASELINE_SCORE, BASELINE_SCORE
 
-SUMMARY_FILE = "results/results_summary.csv"
-KAGGLE_FILE = "data/perfect_submission.csv"
-
+# Mapping model name to index
 model_index_map = {
     "dt": 1,
     "xgb": 2,
@@ -14,6 +11,8 @@ model_index_map = {
     "lgbm": 4,
     "cb": 5,
 }
+
+KAGGLE_FILE = "data/perfect_submission.csv"
 
 
 def truncate_float(value, digits=5):
@@ -37,19 +36,31 @@ def compare_with_baseline(score, baseline, label="Accuracy"):
         )
 
 
-def get_submission_path(model_key, feature_nums):
-    base_dir = os.getcwd()
-    index = model_index_map.get(model_key, 0)
-    folder_name = f"{index}_{model_key}"
+def get_result_path(base_dir, model_name, feature_list, tuned=False):
+    model_index = model_index_map.get(model_name, 0)
+    feature_count = len(feature_list) if feature_list else 0
 
-    sorted_features = sorted(feature_nums)
-    suffix = "_".join(map(str, sorted_features)) if sorted_features else "base"
+    if feature_count == 1:
+        folder = "single-tuning" if tuned else "single-features"
+        filename = (
+            f"{model_index}_{model_name}_single_tuned.csv"
+            if tuned
+            else f"{model_index}_{model_name}_single.csv"
+        )
+    elif feature_count > 1:
+        folder = "tuning-combinations" if tuned else "features-combinations"
+        filename = (
+            f"{model_index}_{model_name}_comb_tuned.csv"
+            if tuned
+            else f"{model_index}_{model_name}_comb.csv"
+        )
+    else:
+        folder = "baseline"
+        filename = f"{model_index}_{model_name}_baseline.csv"
 
-    out_dir = os.path.join(base_dir, "submissions", folder_name)
-    os.makedirs(out_dir, exist_ok=True)
-
-    filename = f"submission_{model_key}_{suffix}.csv"
-    return os.path.join(out_dir, filename)
+    full_dir = os.path.join(base_dir, folder)
+    os.makedirs(full_dir, exist_ok=True)
+    return os.path.join(full_dir, filename)
 
 
 def log_results(
@@ -61,12 +72,11 @@ def log_results(
     params=None,
     std=None,
 ):
-    os.makedirs("results", exist_ok=True)
-
     improvement = accuracy - BASELINE_SCORE.get(model_name, 0)
     row = {
         "model": model_name,
         "features": ", ".join(feature_list) if feature_list else "baseline",
+        "baseline": BASELINE_SCORE.get(model_name, 0),
         "accuracy": truncate_float(accuracy),
         "std": truncate_float(std) if std is not None else None,
         "improvement": truncate_float(improvement),
@@ -74,17 +84,18 @@ def log_results(
         "params": str(params) if params else None,
     }
 
-    if os.path.exists(SUMMARY_FILE) and os.path.getsize(SUMMARY_FILE) > 0:
-        df = pd.read_csv(SUMMARY_FILE)
+    local_file = get_result_path("results/local", model_name, feature_list, tuned)
+
+    if os.path.exists(local_file) and os.path.getsize(local_file) > 0:
+        df = pd.read_csv(local_file)
         df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
     else:
         df = pd.DataFrame([row])
-    df.to_csv(SUMMARY_FILE, index=False)
+    df.to_csv(local_file, index=False)
+    print(f"📁 Appended local results to {local_file}")
 
     if submission_file:
-        compare_with_kaggle(
-            submission_file, model_name, feature_list, tuned=tuned, params=params
-        )
+        compare_with_kaggle(submission_file, model_name, feature_list, tuned, params)
 
 
 def compare_with_kaggle(
@@ -111,25 +122,38 @@ def compare_with_kaggle(
 
     improvement = acc - KAGGLE_BASELINE_SCORE.get(model_name, 0)
 
-    results_dir = "results/kaggle"
-    os.makedirs(results_dir, exist_ok=True)
-    index = model_index_map.get(model_name, 0)
-    output_file = os.path.join(results_dir, f"{index}_{model_name}_kaggle_results.csv")
-
     row = {
         "model": model_name,
         "features": ", ".join(features) if features else "baseline",
+        "baseline": KAGGLE_BASELINE_SCORE.get(model_name, 0),
         "accuracy_vs_kaggle": acc,
         "improvement": truncate_float(improvement),
         "tuned": tuned,
         "params": str(params) if params else None,
     }
 
-    if os.path.exists(output_file) and os.path.getsize(output_file) > 0:
-        df = pd.read_csv(output_file)
+    kaggle_file = get_result_path("results/kaggle", model_name, features, tuned)
+
+    if os.path.exists(kaggle_file) and os.path.getsize(kaggle_file) > 0:
+        df = pd.read_csv(kaggle_file)
         df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
     else:
         df = pd.DataFrame([row])
-
-    df.to_csv(output_file, index=False)
+    df.to_csv(kaggle_file, index=False)
+    print(f"📁 Appended Kaggle results to {kaggle_file}")
     return acc
+
+
+def get_submission_path(model_key, feature_nums):
+    base_dir = os.getcwd()
+    index = model_index_map.get(model_key, 0)
+    folder_name = f"{index}_{model_key}"
+
+    sorted_features = sorted(feature_nums)
+    suffix = "_".join(map(str, sorted_features)) if sorted_features else "base"
+
+    out_dir = os.path.join(base_dir, "submissions", folder_name)
+    os.makedirs(out_dir, exist_ok=True)
+
+    filename = f"submission_{model_key}_{suffix}.csv"
+    return os.path.join(out_dir, filename)

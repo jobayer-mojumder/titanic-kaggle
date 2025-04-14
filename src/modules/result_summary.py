@@ -25,9 +25,9 @@ def run_best_results(tune: bool = False):
 
     NAME_TO_NUM = {v: k for k, v in FEATURE_MAP.items()}
     base_dir = (
-        "kaggle-results/tuning-combinations"
+        "results/kaggle/tuning-combinations"
         if tune
-        else "kaggle-results/features-combinations"
+        else "results/kaggle/features-combinations"
     )
     output_file = "results/best_results.csv"
     best_results = []
