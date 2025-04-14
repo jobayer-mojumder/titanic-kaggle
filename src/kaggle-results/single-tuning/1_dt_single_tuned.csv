@@ -1,0 +1,13 @@
+model,features,accuracy_vs_kaggle,improvement,tuned,params
+dt,title,0.78229,0.00718,True,"{'max_depth': 3, 'min_samples_leaf': 1, 'min_samples_split': 2}"
+dt,family_size,0.77751,0.0024,True,"{'max_depth': 5, 'min_samples_leaf': 1, 'min_samples_split': 2}"
+dt,is_alone,0.77751,0.0024,True,"{'max_depth': 3, 'min_samples_leaf': 1, 'min_samples_split': 2}"
+dt,age_group,0.78468,0.00957,True,"{'max_depth': 5, 'min_samples_leaf': 1, 'min_samples_split': 2}"
+dt,fare_per_person,0.77033,-0.00478,True,"{'max_depth': 7, 'min_samples_leaf': 1, 'min_samples_split': 2}"
+dt,deck,0.77511,0.0,True,"{'max_depth': 3, 'min_samples_leaf': 1, 'min_samples_split': 2}"
+dt,has_cabin,0.77272,-0.00239,True,"{'max_depth': 3, 'min_samples_leaf': 1, 'min_samples_split': 2}"
+dt,is_mother,0.77511,0.0,True,"{'max_depth': 5, 'min_samples_leaf': 2, 'min_samples_split': 2}"
+dt,sex_pclass,0.77751,0.0024,True,"{'max_depth': 3, 'min_samples_leaf': 1, 'min_samples_split': 2}"
+dt,is_child,0.78468,0.00957,True,"{'max_depth': 5, 'min_samples_leaf': 1, 'min_samples_split': 2}"
+dt,women_children_first,0.78468,0.00957,True,"{'max_depth': 5, 'min_samples_leaf': 1, 'min_samples_split': 2}"
+dt,baseline,0.77272,-0.00239,True,"{'max_depth': 5, 'min_samples_leaf': 2, 'min_samples_split': 2}"

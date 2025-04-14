@@ -1,0 +1,13 @@
+model,features,accuracy_vs_kaggle,improvement,tuned,params
+rf,title,0.77511,-0.0024,False,
+rf,family_size,0.77272,-0.00479,False,
+rf,is_alone,0.77272,-0.00479,False,
+rf,age_group,0.78468,0.00717,False,
+rf,fare_per_person,0.75358,-0.02393,False,
+rf,deck,0.76794,-0.00957,False,
+rf,has_cabin,0.7799,0.00239,False,
+rf,is_mother,0.77751,0.0,False,
+rf,sex_pclass,0.77751,0.0,False,
+rf,is_child,0.78468,0.00717,False,
+rf,women_children_first,0.78468,0.00717,False,
+rf,baseline,0.77751,0.0,False,

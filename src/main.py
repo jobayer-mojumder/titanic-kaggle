@@ -8,6 +8,9 @@ from modules.summary import log_results, get_submission_path
 from modules.model_tuning import tune_model
 from modules.constant import DEFAULT_MODELS
 import pandas as pd
+import warnings
+
+warnings.filterwarnings("ignore")
 
 
 def run_model(model_key, feature_nums, tune=False):

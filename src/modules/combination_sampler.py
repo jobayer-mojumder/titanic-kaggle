@@ -8,8 +8,12 @@ from modules.constant import MODEL_ORDER
 def run_balanced_combinations(tune: bool = False):
     print(f"🔍 Mode: {'TUNING' if tune else 'NORMAL'}")
 
-    base_dir = "combination-results/tuning" if tune else "combination-results/features"
-    suffix = "_tune_comb.csv" if tune else "_comb.csv"
+    base_dir = (
+        "kaggle-results/tuning-combinations"
+        if tune
+        else "kaggle-results/features-combinations"
+    )
+    suffix = "_comb_tuned.csv" if tune else "_comb.csv"
 
     file_paths = {
         "Decision Tree": f"1_dt{suffix}",

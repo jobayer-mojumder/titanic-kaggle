@@ -1,0 +1,13 @@
+model,features,accuracy_vs_kaggle,improvement,tuned,params
+cb,title,0.78708,0.0,True,"{'depth': 3, 'iterations': 100, 'l2_leaf_reg': 3, 'learning_rate': 0.1}"
+cb,family_size,0.77751,-0.00956,True,"{'depth': 3, 'iterations': 100, 'l2_leaf_reg': 1, 'learning_rate': 0.01}"
+cb,is_alone,0.77751,-0.00956,True,"{'depth': 5, 'iterations': 100, 'l2_leaf_reg': 1, 'learning_rate': 0.01}"
+cb,age_group,0.78468,-0.00239,True,"{'depth': 5, 'iterations': 200, 'l2_leaf_reg': 1, 'learning_rate': 0.01}"
+cb,fare_per_person,0.77751,-0.00956,True,"{'depth': 5, 'iterations': 200, 'l2_leaf_reg': 1, 'learning_rate': 0.1}"
+cb,deck,0.78229,-0.00478,True,"{'depth': 3, 'iterations': 200, 'l2_leaf_reg': 1, 'learning_rate': 0.01}"
+cb,has_cabin,0.77511,-0.01197,True,"{'depth': 5, 'iterations': 200, 'l2_leaf_reg': 1, 'learning_rate': 0.01}"
+cb,is_mother,0.77751,-0.00956,True,"{'depth': 3, 'iterations': 200, 'l2_leaf_reg': 3, 'learning_rate': 0.01}"
+cb,sex_pclass,0.77751,-0.00956,True,"{'depth': 3, 'iterations': 100, 'l2_leaf_reg': 1, 'learning_rate': 0.1}"
+cb,is_child,0.78468,-0.00239,True,"{'depth': 3, 'iterations': 100, 'l2_leaf_reg': 1, 'learning_rate': 0.1}"
+cb,women_children_first,0.78468,-0.00239,True,"{'depth': 3, 'iterations': 100, 'l2_leaf_reg': 1, 'learning_rate': 0.1}"
+cb,baseline,0.76315,-0.02393,True,"{'depth': 5, 'iterations': 200, 'l2_leaf_reg': 3, 'learning_rate': 0.1}"

@@ -24,12 +24,16 @@ def run_best_results(tune: bool = False):
     }
 
     NAME_TO_NUM = {v: k for k, v in FEATURE_MAP.items()}
-    base_dir = "combination-results/tuning" if tune else "combination-results/features"
+    base_dir = (
+        "kaggle-results/tuning-combinations"
+        if tune
+        else "kaggle-results/features-combinations"
+    )
     output_file = "results/best_results.csv"
     best_results = []
 
     for model, filename in file_paths.items():
-        file_name = filename.replace("_comb", "_tune_comb") if tune else filename
+        file_name = filename.replace("_comb", "_comb_tuned") if tune else filename
         file_path = os.path.join(base_dir, file_name)
 
         if not os.path.exists(file_path):
