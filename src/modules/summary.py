@@ -102,10 +102,10 @@ def log_results(
 
     row = {
         "model": model_name,
+        "features": get_feature_names(feature_list),
         "feature_nums": (
             ", ".join(map(str, feature_list)) if feature_list else "baseline"
         ),
-        "features": get_feature_names(feature_list),
         "baseline": BASELINE_SCORE.get(model_name, 0),
         "accuracy": truncate_float(accuracy),
         "std": truncate_float(std) if std is not None else None,
@@ -156,8 +156,8 @@ def compare_with_kaggle(
 
     row = {
         "model": model_name,
-        "feature_nums": ", ".join(map(str, features)) if features else "baseline",
         "features": get_feature_names(features),
+        "feature_nums": ", ".join(map(str, features)) if features else "baseline",
         "baseline": KAGGLE_BASELINE_SCORE.get(model_name, 0),
         "accuracy_vs_kaggle": acc,
         "improvement": truncate_float(improvement),
