@@ -4,7 +4,6 @@ from sklearn.metrics import accuracy_score
 from modules.constant import KAGGLE_BASELINE_SCORE, BASELINE_SCORE
 from modules.feature_implementation import FEATURE_MAP
 
-# Mapping model name to index
 model_index_map = {
     "dt": 1,
     "xgb": 2,
@@ -14,7 +13,6 @@ model_index_map = {
 }
 
 FEATURE_NAME_TO_NUM = {v.lower(): k for k, v in FEATURE_MAP.items()}
-
 KAGGLE_FILE = "data/perfect_submission.csv"
 
 
@@ -55,12 +53,6 @@ def normalize_feature_list(feature_list):
     return normalized
 
 
-def get_feature_names(feature_list):
-    if not feature_list:
-        return "baseline"
-    return ", ".join(FEATURE_MAP.get(int(f), f"F{f}") for f in feature_list)
-
-
 def get_result_path(base_dir, model_name, feature_list, tuned=False):
     model_index = model_index_map.get(model_name, 0)
     feature_count = len(feature_list) if feature_list else 0
@@ -88,12 +80,41 @@ def get_result_path(base_dir, model_name, feature_list, tuned=False):
     return os.path.join(full_dir, filename)
 
 
+def is_result_duplicate(file_path, model_name, feature_str, tuned_flag):
+    if not os.path.exists(file_path):
+        return False
+    try:
+        df = pd.read_csv(file_path, dtype={"feature_nums": str})
+        df["model"] = df["model"].astype(str).str.strip()
+        df["feature_nums"] = df["feature_nums"].astype(str).str.strip()
+        df["tuned"] = df["tuned"].astype(int)
+    except Exception:
+        return False
+
+    return not df[
+        (df["model"] == model_name)
+        & (df["feature_nums"] == feature_str)
+        & (df["tuned"] == tuned_flag)
+    ].empty
+
+
+def result_already_logged(model_name, feature_nums, tuned=False):
+    feature_nums = sorted(feature_nums)
+    feature_str = ", ".join(map(str, feature_nums)) if feature_nums else "baseline"
+    tuned_flag = 1 if tuned else 0
+
+    for kaggle in [False, True]:
+        base_dir = "results/kaggle" if kaggle else "results/local"
+        file_path = get_result_path(base_dir, model_name, feature_nums, tuned)
+        if is_result_duplicate(file_path, model_name, feature_str, tuned_flag):
+            return True
+    return False
+
+
 def update_summary_csv(mode, row):
     assert mode in ["local", "kaggle"]
-
     summary_dir = "results"
     os.makedirs(summary_dir, exist_ok=True)
-
     file_path = os.path.join(summary_dir, f"summary_{mode}.csv")
 
     summary_row = {
@@ -111,28 +132,17 @@ def update_summary_csv(mode, row):
     else:
         summary_row["kaggle_score"] = row.get("kaggle_score")
 
-    # Define column order per mode
-    column_order_local = [
+    column_order = [
         "model",
         "features",
         "baseline",
-        "cv_accuracy",
+        "cv_accuracy" if mode == "local" else "kaggle_score",
         "improvement",
-        "cv_std",
+        "cv_std" if mode == "local" else None,
         "tuned",
         "tuning_params",
     ]
-    column_order_kaggle = [
-        "model",
-        "features",
-        "baseline",
-        "kaggle_score",
-        "improvement",
-        "tuned",
-        "tuning_params",
-    ]
-
-    column_order = column_order_local if mode == "local" else column_order_kaggle
+    column_order = [col for col in column_order if col is not None]
     summary_row = {col: summary_row.get(col) for col in column_order}
 
     if os.path.exists(file_path):
@@ -154,15 +164,14 @@ def log_results(
     params=None,
     std=None,
 ):
-    feature_list = normalize_feature_list(feature_list)
+    feature_list = sorted(normalize_feature_list(feature_list))
+    feature_str = ", ".join(map(str, feature_list)) if feature_list else "baseline"
     improvement = accuracy - BASELINE_SCORE.get(model_name, 0)
 
     row = {
         "model": model_name,
-        "features": get_feature_names(feature_list),
-        "feature_nums": (
-            ", ".join(map(str, feature_list)) if feature_list else "baseline"
-        ),
+        "features": feature_str,
+        "feature_nums": feature_str,
         "baseline": BASELINE_SCORE.get(model_name, 0),
         "accuracy": truncate_float(accuracy),
         "std": truncate_float(std) if std is not None else None,
@@ -174,11 +183,18 @@ def log_results(
     update_summary_csv("local", row)
     local_file = get_result_path("results/local", model_name, feature_list, tuned)
 
+    if is_result_duplicate(local_file, model_name, feature_str, row["tuned"]):
+        print(
+            f"⏭️ Local result already logged for {model_name} with features [{feature_str}] (tuned={row['tuned']})"
+        )
+        return
+
     if os.path.exists(local_file) and os.path.getsize(local_file) > 0:
         df = pd.read_csv(local_file)
         df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
     else:
         df = pd.DataFrame([row])
+
     df.to_csv(local_file, index=False)
     print(f"📁 Appended local results to {local_file}")
 
@@ -189,7 +205,8 @@ def log_results(
 def compare_with_kaggle(
     submission_file, model_name, features, tuned=False, params=None
 ):
-    features = normalize_feature_list(features)
+    features = sorted(normalize_feature_list(features))
+    feature_str = ", ".join(map(str, features)) if features else "baseline"
 
     if not os.path.exists(KAGGLE_FILE):
         print("⚠️ Kaggle perfect submission not found. Skipping comparison.")
@@ -214,8 +231,8 @@ def compare_with_kaggle(
 
     row = {
         "model": model_name,
-        "features": get_feature_names(features),
-        "feature_nums": ", ".join(map(str, features)) if features else "baseline",
+        "features": feature_str,
+        "feature_nums": feature_str,
         "baseline": KAGGLE_BASELINE_SCORE.get(model_name, 0),
         "kaggle_score": acc,
         "improvement": truncate_float(improvement),
@@ -226,11 +243,18 @@ def compare_with_kaggle(
     update_summary_csv("kaggle", row)
     kaggle_file = get_result_path("results/kaggle", model_name, features, tuned)
 
+    if is_result_duplicate(kaggle_file, model_name, feature_str, row["tuned"]):
+        print(
+            f"⏭️ Kaggle result already logged for {model_name} with features [{feature_str}] (tuned={row['tuned']})"
+        )
+        return acc
+
     if os.path.exists(kaggle_file) and os.path.getsize(kaggle_file) > 0:
         df = pd.read_csv(kaggle_file)
         df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
     else:
         df = pd.DataFrame([row])
+
     df.to_csv(kaggle_file, index=False)
     print(f"📁 Appended Kaggle results to {kaggle_file}")
     return acc
@@ -240,12 +264,9 @@ def get_submission_path(model_key, feature_nums):
     base_dir = os.getcwd()
     index = model_index_map.get(model_key, 0)
     folder_name = f"{index}_{model_key}"
-
     sorted_features = sorted(feature_nums)
     suffix = "_".join(map(str, sorted_features)) if sorted_features else "base"
-
     out_dir = os.path.join(base_dir, "submissions", folder_name)
     os.makedirs(out_dir, exist_ok=True)
-
     filename = f"submission_{model_key}_{suffix}.csv"
     return os.path.join(out_dir, filename)

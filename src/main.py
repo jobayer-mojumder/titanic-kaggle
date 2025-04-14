@@ -1,21 +1,28 @@
 # type: ignore
 import os
+import warnings
+import pandas as pd
+
 from handlers.dispatcher import print_menu, handle_choice
 from modules.feature_implementation import FEATURE_MAP
 from modules.preprocessing import preprocess
 from modules.evaluation import evaluate_model
-from modules.summary import log_results, get_submission_path
+from modules.summary import log_results, get_submission_path, result_already_logged
 from modules.model_tuning import tune_model
 from modules.constant import DEFAULT_MODELS
-import pandas as pd
-import warnings
 
 warnings.filterwarnings("ignore")
 
 
 def run_model(model_key, feature_nums, tune=False):
+    feature_nums = sorted(feature_nums)
+    print(f"\n\n🚀 Running {model_key} with: {feature_nums or 'Baseline only'}")
+
+    if result_already_logged(model_key, feature_nums, tuned=tune):
+        print("⏭️ Already logged in result CSV. Skipping...")
+        return
+
     selected_features = [FEATURE_MAP[n] for n in feature_nums]
-    print(f"\n\n🚀 Running {model_key} with: {selected_features or 'Baseline only'}")
 
     train = pd.read_csv("data/train.csv")
     test = pd.read_csv("data/test.csv")
@@ -42,9 +49,10 @@ def run_model(model_key, feature_nums, tune=False):
         out_file, index=False
     )
     print(f"✅ Saved predictions to {os.path.basename(out_file)}")
+
     log_results(
         model_key,
-        selected_features,
+        feature_nums,
         acc,
         out_file,
         tuned=tune,
