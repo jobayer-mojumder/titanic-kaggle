@@ -112,12 +112,19 @@ def handle_choice(choice, run_model):
     return None, None
 
 
+def format_duration(seconds):
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    secs = seconds % 60
+    return f"{hours}h {minutes}m {secs:.2f}s"
+
+
 def print_menu(last_activity=None, last_duration=None):
     print(f"\n{BOLD}{CYAN}🎯 Select an experiment to run:{RESET}\n")
     if last_activity:
         print(f"{GREEN}🕘 Last activity:{RESET} {last_activity}")
         if last_duration is not None:
-            print(f"{BLUE}⏱️ Time taken:{RESET} {last_duration:.2f} seconds")
+            print(f"{BLUE}⏱️ Time taken:{RESET} {format_duration(last_duration)}")
     print("\n┌────────────────────────────────┬─────────────────────────────────┐")
     print(
         f"│ {BLUE}Feature Engineering{RESET}            │ {GREEN}Model Tuning{RESET}                    │"

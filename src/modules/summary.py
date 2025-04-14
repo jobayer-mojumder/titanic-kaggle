@@ -88,6 +88,35 @@ def get_result_path(base_dir, model_name, feature_list, tuned=False):
     return os.path.join(full_dir, filename)
 
 
+def update_summary_csv(mode, row):
+    assert mode in ["local", "kaggle"]
+
+    summary_dir = "results"
+    os.makedirs(summary_dir, exist_ok=True)
+
+    file_path = os.path.join(summary_dir, f"summary_{mode}.csv")
+
+    summary_row = {
+        "model": row.get("model"),
+        "type": "tuned" if row.get("tuned") else "feature",
+        "features": row.get("feature_nums", "baseline"),
+        "tuning_params": row.get("params", None),
+        "cv_accuracy": row.get("accuracy") if mode == "local" else None,
+        "cv_std": row.get("std") if mode == "local" else None,
+        "kaggle_score": row.get("accuracy_vs_kaggle") if mode == "kaggle" else None,
+        "improvement": row.get("improvement"),
+    }
+
+    if os.path.exists(file_path):
+        df = pd.read_csv(file_path)
+    else:
+        df = pd.DataFrame()
+
+    df = pd.concat([df, pd.DataFrame([summary_row])], ignore_index=True)
+    df.to_csv(file_path, index=False)
+    print(f"📄 Summary Updated for {mode}")
+
+
 def log_results(
     model_name,
     feature_list,
@@ -114,6 +143,7 @@ def log_results(
         "params": str(params) if params else None,
     }
 
+    update_summary_csv("local", row)
     local_file = get_result_path("results/local", model_name, feature_list, tuned)
 
     if os.path.exists(local_file) and os.path.getsize(local_file) > 0:
@@ -165,6 +195,7 @@ def compare_with_kaggle(
         "params": str(params) if params else None,
     }
 
+    update_summary_csv("kaggle", row)
     kaggle_file = get_result_path("results/kaggle", model_name, features, tuned)
 
     if os.path.exists(kaggle_file) and os.path.getsize(kaggle_file) > 0:
