@@ -1,5 +1,4 @@
 import pandas as pd
-import warnings
 import scipy.sparse as sp
 import numpy as np
 from sklearn.model_selection import GridSearchCV
@@ -8,37 +7,43 @@ from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 from catboost import CatBoostClassifier
+from modules.constant import DEFAULT_MODELS
 
 PARAM_GRIDS = {
     "dt": {
-        "max_depth": [3, 5, 7],
-        "min_samples_split": [2, 4],
-        "min_samples_leaf": [1, 2],
+        "max_depth": [2, 3, 4, 5, None],
+        "min_samples_split": [2, 5, 10],
+        "min_samples_leaf": [1, 2, 4],
+        "criterion": ["gini", "entropy"],
     },
     "rf": {
-        "n_estimators": [100, 200],
-        "max_depth": [5, 10],
-        "min_samples_split": [2, 4],
-        "min_samples_leaf": [1, 2],
+        "n_estimators": [100, 200, 300],
+        "max_depth": [3, 5, 7, None],
+        "min_samples_split": [2, 5, 10],
+        "min_samples_leaf": [1, 2, 4],
+        "criterion": ["gini", "entropy"],
     },
     "xgb": {
-        "n_estimators": [100, 200],
-        "max_depth": [3, 5],
-        "learning_rate": [0.01, 0.1],
-        "subsample": [0.8, 1.0],
-        "colsample_bytree": [0.8, 1.0],
+        "n_estimators": [100, 200, 300],
+        "max_depth": [3, 4, 5, 6],
+        "learning_rate": [0.01, 0.05, 0.1, 0.2],
+        "subsample": [0.6, 0.8, 1.0],
+        "colsample_bytree": [0.6, 0.8, 1.0],
     },
     "lgbm": {
-        "n_estimators": [100, 200],
-        "max_depth": [3, 5, -1],
-        "num_leaves": [15, 31],
-        "learning_rate": [0.01, 0.1],
+        "n_estimators": [100, 200, 300],
+        "max_depth": [3, 4, 5, -1],
+        "learning_rate": [0.01, 0.05, 0.1, 0.2],
+        "num_leaves": [7, 15, 31],
+        "subsample": [0.6, 0.8, 1.0],
+        "colsample_bytree": [0.6, 0.8, 1.0],
     },
     "cb": {
-        "iterations": [100, 200],
-        "depth": [3, 5],
-        "learning_rate": [0.01, 0.1],
-        "l2_leaf_reg": [1, 3],
+        "iterations": [100, 200, 300],
+        "depth": [3, 4, 5, 6],
+        "learning_rate": [0.01, 0.05, 0.1, 0.2],
+        "l2_leaf_reg": [1, 3, 5],
+        "border_count": [32, 64, 128],
     },
 }
 
@@ -48,7 +53,7 @@ BASE_MODELS = {
     "rf": RandomForestClassifier(random_state=42),
     "xgb": XGBClassifier(eval_metric="logloss", random_state=42),
     "lgbm": LGBMClassifier(random_state=42, verbose=-1),
-    "cb": CatBoostClassifier(verbose=0, random_seed=42),
+    "cb": CatBoostClassifier(random_seed=42, verbose=0),
 }
 
 
@@ -76,7 +81,7 @@ def ensure_numeric_features(X):
 def tune_model(X, y, model_key, cv=5, scoring="accuracy"):
     print(f"🔍 Tuning model: {model_key.upper()}")
 
-    model = BASE_MODELS[model_key]
+    model = DEFAULT_MODELS[model_key]
     param_grid = PARAM_GRIDS[model_key]
 
     X = ensure_numeric_features(X)

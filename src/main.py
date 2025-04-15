@@ -68,7 +68,7 @@ def main():
     while True:
         os.system("cls" if os.name == "nt" else "clear")
         print_menu(last_activity, last_duration)
-        choice = input("Enter your choice (0–14): ").strip()
+        choice = input("Enter your choice (0–10): ").strip()
         if choice == "0":
             print("👋 Exiting.")
             break
