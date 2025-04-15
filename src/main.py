@@ -19,7 +19,7 @@ def run_model(model_key, feature_nums, tune=False):
     print(f"\n\n🚀 Running {model_key} with: {feature_nums or 'Baseline only'}")
 
     if result_already_logged(model_key, feature_nums, tuned=tune):
-        print("⏭️ Already logged in result CSV. Skipping...")
+        print("⏭️ {model_key} - Already logged in result CSV. Skipping...")
         return
 
     selected_features = [FEATURE_MAP[n] for n in feature_nums]

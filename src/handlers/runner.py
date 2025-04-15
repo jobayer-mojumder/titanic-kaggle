@@ -29,7 +29,7 @@ def run_all_general_combinations(run_model_func, model_key, tune=False):
     for combo in GENERAL_FEATURE_COMBINATIONS:
         feature_nums_str = ", ".join(map(str, combo))
         if tune and feature_nums_str in finished_combos:
-            print(f"⏭️  Skipping already tuned combo: {feature_nums_str}")
+            print(f"⏭️ {model_key} - Skipping already tuned combo: {feature_nums_str}")
             continue
 
         run_model_func(model_key, combo, tune=tune)

@@ -119,7 +119,7 @@ def update_summary_csv(mode, row):
 
     summary_row = {
         "model": row.get("model"),
-        "features": row.get("feature_nums", "baseline"),
+        "feature_nums": row.get("feature_nums", "baseline"),
         "tuned": row.get("tuned", 0),
         "tuning_params": row.get("params", None),
         "improvement": row.get("improvement"),
@@ -134,7 +134,7 @@ def update_summary_csv(mode, row):
 
     column_order = [
         "model",
-        "features",
+        "feature_nums",
         "baseline",
         "cv_accuracy" if mode == "local" else "kaggle_score",
         "improvement",
@@ -170,7 +170,6 @@ def log_results(
 
     row = {
         "model": model_name,
-        "features": feature_str,
         "feature_nums": feature_str,
         "baseline": BASELINE_SCORE.get(model_name, 0),
         "accuracy": truncate_float(accuracy),
@@ -231,7 +230,6 @@ def compare_with_kaggle(
 
     row = {
         "model": model_name,
-        "features": feature_str,
         "feature_nums": feature_str,
         "baseline": KAGGLE_BASELINE_SCORE.get(model_name, 0),
         "kaggle_score": acc,
