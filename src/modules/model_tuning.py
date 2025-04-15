@@ -14,14 +14,12 @@ PARAM_GRIDS = {
         "max_depth": [2, 3, 4, 5, None],
         "min_samples_split": [2, 5, 10],
         "min_samples_leaf": [1, 2, 4],
-        "criterion": ["gini", "entropy"],
     },
     "rf": {
         "n_estimators": [100, 200, 300],
         "max_depth": [3, 5, 7, None],
         "min_samples_split": [2, 5, 10],
         "min_samples_leaf": [1, 2, 4],
-        "criterion": ["gini", "entropy"],
     },
     "xgb": {
         "n_estimators": [100, 200, 300],
