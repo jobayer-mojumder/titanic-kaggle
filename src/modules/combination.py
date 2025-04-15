@@ -1,6 +1,4 @@
-ALL_FEATURE_COMBINATIONS = [
-    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-]
+ALL_FEATURE_COMBINATION = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
 GENERAL_FEATURE_COMBINATIONS = [
     [1, 2],

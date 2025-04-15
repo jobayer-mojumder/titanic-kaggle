@@ -44,19 +44,16 @@ def run_baseline_models(run_model_func, model_key, tune=False):
 
 
 def run_all_features_in_one_combination(run_model_func, model_key, tune=False):
-    from modules.combination import ALL_FEATURE_COMBINATIONS
+    from modules.combination import ALL_FEATURE_COMBINATION
 
     finished_combos = set()
     if tune:
         finished_combos = load_finished_combinations(model_key)
-
-    for combo in ALL_FEATURE_COMBINATIONS:
-        feature_nums_str = ", ".join(map(str, combo))
-        if tune and feature_nums_str in finished_combos:
-            print(f"⏭️ {model_key} - Skipping already tuned combo: {feature_nums_str}")
-            continue
-
-        run_model_func(model_key, combo, tune=tune)
+    feature_nums_str = ", ".join(map(str, ALL_FEATURE_COMBINATION))
+    if tune and feature_nums_str in finished_combos:
+        print(f"⏭️ {model_key} - Skipping already tuned combo: {feature_nums_str}")
+        return
+    run_model_func(model_key, ALL_FEATURE_COMBINATION, tune=tune)
 
 
 def run_best_single_feature_combination(run_model_func, model_key, tune=False):
