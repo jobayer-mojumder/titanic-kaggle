@@ -107,7 +107,3 @@ def get_10_balanced_feature_combinations(model_key):
             print(f"⚠️ Skipping invalid row: {row['feature_nums']} ({e})")
 
     return combinations
-
-
-if __name__ == "__main__":
-    print(get_10_best_feature_combinations("dt"))
