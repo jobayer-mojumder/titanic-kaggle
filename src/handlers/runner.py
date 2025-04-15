@@ -1,6 +1,10 @@
-import time
 import os
 import pandas as pd
+from modules.analysis import (
+    get_best_single_feature_combination,
+    get_10_best_feature_combinations,
+    get_10_balanced_feature_combinations,
+)
 
 
 def load_finished_combinations(model_key):
@@ -57,7 +61,12 @@ def run_all_features_in_one_combination(run_model_func, model_key, tune=False):
 
 
 def run_best_single_feature_combination(run_model_func, model_key, tune=False):
-    combination = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    combination = get_best_single_feature_combination(model_key)
+
+    if not combination:
+        print(f"⚠️ No best single feature combination found for {model_key}.")
+        return
+
     finished_combos = set()
     if tune:
         finished_combos = load_finished_combinations(model_key)
@@ -69,12 +78,11 @@ def run_best_single_feature_combination(run_model_func, model_key, tune=False):
 
 
 def run_10_balanced_feature_combinations(run_model_func, model_key, tune=False):
-    combinations = [
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        [1, 2, 3, 4, 5, 6, 7, 8, 9],
-        [1, 2, 3, 4, 5, 6, 7, 8],
-        [1, 2, 3, 4, 5, 6, 7],
-    ]
+    combinations = get_10_balanced_feature_combinations(model_key)
+
+    if not combinations:
+        print(f"⚠️ No 10 balanced feature combinations found for {model_key}.")
+        return
 
     finished_combos = set()
     if tune:
@@ -90,12 +98,11 @@ def run_10_balanced_feature_combinations(run_model_func, model_key, tune=False):
 
 
 def run_10_best_feature_combinations(run_model_func, model_key, tune=False):
-    combinations = [
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        [1, 2, 3, 4, 5, 6, 7, 8, 9],
-        [1, 2, 3, 4, 5, 6, 7, 8],
-        [1, 2, 3, 4, 5, 6, 7],
-    ]
+    combinations = get_10_best_feature_combinations(model_key)
+
+    if not combinations:
+        print(f"⚠️ No 10 best feature combinations found for {model_key}.")
+        return
 
     finished_combos = set()
     if tune:
