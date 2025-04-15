@@ -2,7 +2,6 @@ import os
 import pandas as pd
 from tabulate import tabulate
 from modules.analysis import (
-    load_combination_file,
     get_best_single_feature_combination,
     get_10_best_feature_combinations,
     get_10_balanced_feature_combinations,
@@ -20,224 +19,272 @@ MODEL_KEYS = {
     "4": ("lgbm", "LightGBM", 4),
     "5": ("cb", "CatBoost", 5),
 }
-
-
-def extract_rows_for_combos(model_key, combos):
-    df = load_combination_file(model_key)
-    if df is None:
-        return []
-    df["feature_nums"] = df["feature_nums"].astype(str).str.strip()
-    rows = []
-    for combo in combos:
-        combo_str = ", ".join(map(str, sorted(combo)))
-        match = df[df["feature_nums"] == combo_str]
-        if not match.empty:
-            row = match.iloc[0].to_dict()
-            row["feature_list"] = combo
-            rows.append(row)
-    return rows
-
-
-def show_and_save(label, model_key, combos, filename_base, model_index):
-    rows = extract_rows_for_combos(model_key, combos)
-    if not rows:
-        print(f"⚠️ No matching rows found.")
-        return
-    print(f"\n📊 {label}")
-    df_out = pd.DataFrame(rows)
-    df_out = df_out[["feature_nums", "kaggle_score", "improvement", "tuned"]]
-    df_out.insert(0, "rank", range(1, len(df_out) + 1))
-    print(tabulate(df_out, headers="keys", tablefmt="fancy_grid", showindex=False))
-    filename = f"{model_index}_{model_key}_{filename_base}.csv"
-    out_path = os.path.join(STATS_DIR, filename)
-    df_out.to_csv(out_path, index=False)
-    print(f"\n📁 Saved to {os.path.basename(out_path)}")
+MODEL_KEYS_REV = {v[0]: k for k, v in MODEL_KEYS.items()}
 
 
 def select_model():
     print("\n🔧 Choose a model:")
     for k, (_, name, _) in MODEL_KEYS.items():
         print(f"{k}. {name}")
-    model_choice = input("Enter model number: ").strip()
-    return MODEL_KEYS.get(model_choice, (None, None, None))
+    choice = input("Enter model number: ").strip()
+    return MODEL_KEYS.get(choice, (None, None, None))
 
 
-def show_best_combinations_all():
-    print("\n📊 Best Combination for All Models")
-    all_rows = []
-    for _, (model_key, model_label, model_index) in MODEL_KEYS.items():
-        combo = get_best_single_feature_combination(model_key)
-        if combo:
-            rows = extract_rows_for_combos(model_key, [combo])
-            if rows:
-                row = rows[0]
-                all_rows.append(
-                    {
-                        "rank": model_index,
-                        "model": model_label,
-                        "model_key": model_key,
-                        "feature_nums": row["feature_nums"],
-                        "kaggle_score": row["kaggle_score"],
-                        "improvement": row["improvement"],
-                        "tuned": row["tuned"],
-                    }
-                )
-    df = pd.DataFrame(all_rows).sort_values(by="rank").reset_index(drop=True)
-    print(tabulate(df, headers="keys", tablefmt="fancy_grid", showindex=False))
-    out_path = os.path.join(STATS_DIR, "best_combinations_features.csv")
-    df.to_csv(out_path, index=False)
-    print(f"\n📁 Saved to {os.path.basename(out_path)}")
+def display_table(df, title, file_name):
+    os.system("cls" if os.name == "nt" else "clear")
 
-
-def show_top_10_combinations(model_key, model_label, model_index):
-    combos = get_10_best_feature_combinations(model_key)
-    show_and_save(
-        f"Top 10 combinations for {model_label}",
-        model_key,
-        combos,
-        "top10",
-        model_index,
-    )
-
-
-def show_balanced_combinations(model_key, model_label, model_index):
-    combos = get_10_balanced_feature_combinations(model_key)
-    show_and_save(
-        f"Balanced 10 combinations for {model_label}",
-        model_key,
-        combos,
-        "balanced10",
-        model_index,
-    )
-
-
-def show_single_feature_results(model_key, model_label, model_index):
-    csv_path = os.path.join(
-        "results", "kaggle", "single-features", f"{model_index}_{model_key}_single.csv"
-    )
-    if not os.path.exists(csv_path):
-        print(f"⚠️ File not found: {csv_path}")
-        return
-    df = pd.read_csv(csv_path)
     if df.empty:
-        print("⚠️ No single-feature results found.")
+        print("⚠️ No data found.")
+        return
+
+    print(f"\n📊 {title}")
+    print(tabulate(df, headers="keys", tablefmt="fancy_grid", showindex=False))
+
+    output_path = os.path.join(STATS_DIR, file_name)
+    df.to_csv(output_path, index=False)
+    print(f"\n📁 Data saved to stats/{os.path.basename(output_path)}")
+
+    input("Press Enter to continue...")
+    os.system("cls" if os.name == "nt" else "clear")
+
+
+def show_single_feature_results(model_key, model_label, model_index, tuned=False):
+    subdir = "single-tuning" if tuned else "single-features"
+    suffix = "single_tuned.csv" if tuned else "single.csv"
+    filename = f"{model_index}_{model_key}_{suffix}"
+    path = os.path.join("results", "kaggle", subdir, filename)
+    if not os.path.exists(path):
+        print(f"⚠️ File not found: {path}")
+        return
+    df = pd.read_csv(path)
+    if df.empty:
+        print("⚠️ No data found.")
         return
     df["rank"] = df["kaggle_score"].rank(method="min", ascending=False).astype(int)
     df = df.sort_values(by="kaggle_score", ascending=False)
     df = df[["rank", "feature_nums", "kaggle_score", "improvement", "tuned"]]
-    print(f"\n📊 All 11 Single Feature Results for {model_label}")
-    print(tabulate(df, headers="keys", tablefmt="fancy_grid", showindex=False))
-    filename = f"{model_index}_{model_key}_single_features.csv"
-    out_path = os.path.join(STATS_DIR, filename)
-    df.to_csv(out_path, index=False)
-    print(f"\n📁 Saved to {os.path.basename(out_path)}")
+    title = (
+        f"Tuned Single Feature Results for {model_label}"
+        if tuned
+        else f"Single Feature Results for {model_label}"
+    )
+    out_csv = (
+        f"{model_index}_{model_key}_single_tuned.csv"
+        if tuned
+        else f"{model_index}_{model_key}_single_features.csv"
+    )
+    display_table(df, title, out_csv)
 
 
-def show_baseline_scores():
-    print("\n📊 Baseline Kaggle Scores for All Models")
-    data = []
-    for _, (model_key, label, _) in MODEL_KEYS.items():
-        score = KAGGLE_BASELINE_SCORE.get(model_key)
-        data.append((label, model_key, score if score is not None else "N/A"))
-    df = pd.DataFrame(data, columns=["Model", "Key", "Kaggle Score"])
-    print(tabulate(df, headers="keys", tablefmt="fancy_grid", showindex=False))
-    out_path = os.path.join(STATS_DIR, "baseline_scores_features.csv")
-    df.to_csv(out_path, index=False)
-    print(f"\n📁 Saved to {os.path.basename(out_path)}")
+def show_baseline_scores(tuned=False):
+    summary_path = os.path.join("results", "summary_kaggle.csv")
+    if not os.path.exists(summary_path):
+        print(f"❌ summary_kaggle.csv not found at {summary_path}")
+        return
+
+    df = pd.read_csv(summary_path)
+    if tuned:
+        filtered = df[(df["feature_nums"] == "baseline") & (df["tuned"] == 1)]
+        label = "Tuned"
+    else:
+        filtered = df[(df["feature_nums"] == "baseline") & (df["tuned"] == 0)]
+        label = "Untuned"
+
+    rows = []
+    for _, (model_key, model_label, _) in MODEL_KEYS.items():
+        row = filtered[filtered["model"] == model_key]
+        if not row.empty:
+            score = row.iloc[0]["kaggle_score"]
+            rows.append((model_label, model_key, round(score, 5)))
+        else:
+            rows.append((model_label, model_key, "Not found"))
+
+    out_df = pd.DataFrame(
+        rows, columns=["Model", "Key", f"{label} Baseline Kaggle Score"]
+    )
+    filename = f"baseline_scores_{'tuned' if tuned else 'features'}.csv"
+    display_table(out_df, f"Baseline Kaggle Scores ({label}) for All Models", filename)
 
 
-def show_single_tuned_results(model_key, model_label, model_index):
-    csv_path = os.path.join(
+def load_tuned_combination_file(model_key, model_index):
+    path = os.path.join(
         "results",
         "kaggle",
-        "single-tuning",
-        f"{model_index}_{model_key}_single_tuned.csv",
+        "tuning-combinations",
+        f"{model_index}_{model_key}_comb_tuned.csv",
     )
-    if not os.path.exists(csv_path):
-        print(f"⚠️ File not found: {csv_path}")
-        return
-
-    df = pd.read_csv(csv_path)
-    if df.empty:
-        print("⚠️ No single-feature tuning results found.")
-        return
-
-    df["rank"] = df["kaggle_score"].rank(method="min", ascending=False).astype(int)
-    df = df.sort_values(by="kaggle_score", ascending=False)
-    df = df[["rank", "feature_nums", "kaggle_score", "improvement", "tuned"]]
-
-    print(f"\n📊 Tuned Results for 11 Single Features — {model_label}")
-    print(tabulate(df, headers="keys", tablefmt="fancy_grid", showindex=False))
-
-    filename = f"{model_index}_{model_key}_single_tuned.csv"
-    out_path = os.path.join(STATS_DIR, filename)
-    df.to_csv(out_path, index=False)
-    print(f"\n📁 Saved to {os.path.basename(out_path)}")
+    if not os.path.exists(path):
+        print(f"⚠️ File not found: {path}")
+        return None
+    return pd.read_csv(path)
 
 
-def show_baseline_tuned_scores():
-    print("\n📊 Baseline Tuned Kaggle Scores for All Models")
+def lookup_combinations_in_tuned(tuned_df, combinations):
+    tuned_df = tuned_df.copy()
+    tuned_df["feature_nums"] = tuned_df["feature_nums"].astype(str).str.strip()
+    combo_strs = [", ".join(map(str, sorted(combo))) for combo in combinations]
+    return tuned_df[tuned_df["feature_nums"].isin(combo_strs)]
+
+
+def extract_rows_for_combos(model_key, combos, tuned=False):
+    folder = "tuning-combinations" if tuned else "features-combinations"
+    suffix = "_comb_tuned.csv" if tuned else "_comb.csv"
+    index = MODEL_KEYS_REV[model_key]
+    path = f"results/kaggle/{folder}/{index}_{model_key}{suffix}"
+    if not os.path.exists(path):
+        return []
+    df = pd.read_csv(path)
+    df["feature_nums"] = df["feature_nums"].astype(str).str.strip()
     rows = []
+    for combo in combos:
+        combo_str = ", ".join(map(str, sorted(combo)))
+        match = df[df["feature_nums"] == combo_str]
+        if not match.empty:
+            rows.append(match.iloc[0].to_dict())
+    return rows
 
+
+def show_best_combinations_all(tuned=False):
+    rows = []
     for _, (model_key, model_label, model_index) in MODEL_KEYS.items():
-        file_path = os.path.join(
-            "results",
-            "kaggle",
-            "single-tuning",
-            f"{model_index}_{model_key}_single_tuned.csv",
-        )
+        combo = get_best_single_feature_combination(model_key)
+        result = extract_rows_for_combos(model_key, [combo], tuned=tuned)
+        if result:
+            row = result[0]
+            rows.append(
+                {
+                    "rank": model_index,
+                    "model": model_label,
+                    "model_key": model_key,
+                    "feature_nums": row["feature_nums"],
+                    "kaggle_score": row["kaggle_score"],
+                    "improvement": row.get("improvement", ""),
+                    "tuned": row.get("tuned", ""),
+                }
+            )
+    df = pd.DataFrame(rows).sort_values(by="rank").reset_index(drop=True)
+    title = (
+        "Best Tuned Feature Combination for All Models"
+        if tuned
+        else "Best Feature Combination for All Models"
+    )
+    file = "best_combinations_tuned.csv" if tuned else "best_combinations_features.csv"
+    display_table(df, title, file)
 
-        if os.path.exists(file_path):
-            df = pd.read_csv(file_path)
-            if not df.empty and "kaggle_score" in df.columns:
-                best_score = df["kaggle_score"].max()
-                rows.append((model_label, model_key, round(best_score, 5)))
-            else:
-                rows.append((model_label, model_key, "N/A"))
-        else:
-            rows.append((model_label, model_key, "File Missing"))
 
-    df = pd.DataFrame(rows, columns=["Model", "Key", "Tuned Baseline Kaggle Score"])
-    print(tabulate(df, headers="keys", tablefmt="fancy_grid", showindex=False))
-
-    out_path = os.path.join(STATS_DIR, "baseline_scores_tuned.csv")
-    df.to_csv(out_path, index=False)
-    print(f"\n📁 Saved to {os.path.basename(out_path)}")
+def show_combinations(
+    model_key, model_label, model_index, combos, title, filename, tuned=False
+):
+    rows = extract_rows_for_combos(model_key, combos, tuned=tuned)
+    if not rows:
+        print("⚠️ No matching rows found.")
+        return
+    df = pd.DataFrame(rows)
+    df.insert(0, "rank", range(1, len(df) + 1))
+    df = df[["rank", "feature_nums", "kaggle_score", "improvement", "tuned"]]
+    display_table(df, title, filename)
 
 
 def stats_menu():
     while True:
-        print("\n🎯 Stats Menu:")
-        print("1. Show best combination for all models")
-        print("2. Show 10 best combinations for a model")
-        print("3. Show 10 balanced combinations for a model")
-        print("4. Show baseline score for all models")
-        print("5. Show all 11 single feature results for a model")
-        print("6. Show all 11 single feature tuning results for a model")
-        print("7. Show baseline tuned score for all models")
-        print("0. Exit")
+        print("\n" + "=" * 50)
+        print("🎯 Stats Menu".center(50))
+        print("=" * 50)
+
+        print("\n📊 Feature Engineering")
+        print("     [1]  Best feature combination for all models")
+        print("     [2]  Top 10 feature combinations for a model")
+        print("     [3]  Balanced 10 feature combinations for a model")
+        print("     [4]  Single feature results for a model")
+        print("     [5]  Baseline Kaggle score (untuned) for all models")
+
+        print("\n🔧 Model Tuning (Single Features)")
+        print("     [6]  Tuned single feature results for a model")
+        print("     [7]  Tuned baseline score for all models")
+
+        print("\n🧪 Effect of Model Tuning on Engineered Feature Combinations")
+        print("     [8]  Tuned score for best feature combination (from FE)")
+        print("     [9]  Tuned scores for top 10 feature combinations (from FE)")
+        print("     [10]  Tuned scores for balanced 10 feature combinations (from FE)")
+
+        print("\n  [0]  Exit")
+        print("=" * 50)
+
         choice = input("Choose an option: ").strip()
         if choice == "0":
             break
         elif choice == "1":
-            show_best_combinations_all()
-        elif choice in ["2", "3", "5", "6"]:
+            show_best_combinations_all(tuned=False)
+        elif choice == "2":
             model_key, model_label, model_index = select_model()
-            if not model_key:
-                print("❌ Invalid model number.")
-                continue
-            if choice == "2":
-                show_top_10_combinations(model_key, model_label, model_index)
-            elif choice == "3":
-                show_balanced_combinations(model_key, model_label, model_index)
-            elif choice == "5":
-                show_single_feature_results(model_key, model_label, model_index)
-            if choice == "6":
-                show_single_tuned_results(model_key, model_label, model_index)
+            if model_key:
+                combos = get_10_best_feature_combinations(model_key)
+                show_combinations(
+                    model_key,
+                    model_label,
+                    model_index,
+                    combos,
+                    f"Top 10 Feature Combinations for {model_label}",
+                    f"{model_index}_{model_key}_top10.csv",
+                    tuned=False,
+                )
+        elif choice == "3":
+            model_key, model_label, model_index = select_model()
+            if model_key:
+                combos = get_10_balanced_feature_combinations(model_key)
+                show_combinations(
+                    model_key,
+                    model_label,
+                    model_index,
+                    combos,
+                    f"Balanced 10 Feature Combinations for {model_label}",
+                    f"{model_index}_{model_key}_balanced10.csv",
+                    tuned=False,
+                )
         elif choice == "4":
-            show_baseline_scores()
+            model_key, model_label, model_index = select_model()
+            if model_key:
+                show_single_feature_results(
+                    model_key, model_label, model_index, tuned=False
+                )
+        elif choice == "5":
+            show_baseline_scores(tuned=False)
+        elif choice == "6":
+            model_key, model_label, model_index = select_model()
+            if model_key:
+                show_single_feature_results(
+                    model_key, model_label, model_index, tuned=True
+                )
         elif choice == "7":
-            show_baseline_tuned_scores()
+            show_baseline_scores(tuned=True)
+        elif choice == "8":
+            show_best_combinations_all(tuned=True)
+        elif choice == "9":
+            model_key, model_label, model_index = select_model()
+            if model_key:
+                combos = get_10_best_feature_combinations(model_key)
+                show_combinations(
+                    model_key,
+                    model_label,
+                    model_index,
+                    combos,
+                    f"Top 10 Tuned Combinations for {model_label}",
+                    f"{model_index}_{model_key}_top10_tuned.csv",
+                    tuned=True,
+                )
+        elif choice == "10":
+            model_key, model_label, model_index = select_model()
+            if model_key:
+                combos = get_10_balanced_feature_combinations(model_key)
+                show_combinations(
+                    model_key,
+                    model_label,
+                    model_index,
+                    combos,
+                    f"Balanced 10 Tuned Combinations for {model_label}",
+                    f"{model_index}_{model_key}_balanced10_tuned.csv",
+                    tuned=True,
+                )
         else:
             print("❌ Invalid option.")
 
