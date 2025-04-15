@@ -59,7 +59,10 @@ def get_10_best_feature_combinations(model_key):
     ):
         return []
 
-    top_10 = df.sort_values(by="kaggle_score", ascending=False).head(10)
+    df_sorted = df.sort_values(by="kaggle_score", ascending=False).drop_duplicates(
+        subset="feature_nums"
+    )
+    top_10 = df_sorted.head(10)
     combinations = []
 
     for _, row in top_10.iterrows():
