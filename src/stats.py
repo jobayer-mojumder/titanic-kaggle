@@ -9,7 +9,7 @@ from modules.analysis import (
 from modules.constant import KAGGLE_BASELINE_SCORE
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-STATS_DIR = os.path.join(CURRENT_DIR, "stats")
+STATS_DIR = os.path.join(CURRENT_DIR, "stats/kaggle")
 os.makedirs(STATS_DIR, exist_ok=True)
 
 MODEL_KEYS = {
@@ -45,7 +45,6 @@ def display_table(df, title, file_name):
     print(f"\n📁 Data saved to stats/{os.path.basename(output_path)}")
 
     input("Press Enter to continue...")
-    os.system("cls" if os.name == "nt" else "clear")
 
 
 def show_single_feature_results(model_key, model_label, model_index, tuned=False):
@@ -185,31 +184,35 @@ def show_combinations(
     display_table(df, title, filename)
 
 
+def print_menu():
+    os.system("cls" if os.name == "nt" else "clear")
+    print("\n" + "=" * 50)
+    print("🎯 Stats Menu".center(50))
+    print("=" * 50)
+
+    print("\n📊 Feature Engineering")
+    print("     [1]  Best feature combination for all models")
+    print("     [2]  Top 10 feature combinations for a model")
+    print("     [3]  Balanced 10 feature combinations for a model")
+    print("     [4]  Single feature results for a model")
+    print("     [5]  Baseline Kaggle score (untuned) for all models")
+
+    print("\n🔧 Model Tuning (Single Features)")
+    print("     [6]  Tuned single feature results for a model")
+    print("     [7]  Tuned baseline score for all models")
+
+    print("\n🧪 Effect of Model Tuning on Engineered Feature Combinations")
+    print("     [8]  Tuned score for best feature combination (from FE)")
+    print("     [9]  Tuned scores for top 10 feature combinations (from FE)")
+    print("     [10]  Tuned scores for balanced 10 feature combinations (from FE)")
+
+    print("\n  [0]  Exit")
+    print("=" * 50)
+
+
 def stats_menu():
     while True:
-        print("\n" + "=" * 50)
-        print("🎯 Stats Menu".center(50))
-        print("=" * 50)
-
-        print("\n📊 Feature Engineering")
-        print("     [1]  Best feature combination for all models")
-        print("     [2]  Top 10 feature combinations for a model")
-        print("     [3]  Balanced 10 feature combinations for a model")
-        print("     [4]  Single feature results for a model")
-        print("     [5]  Baseline Kaggle score (untuned) for all models")
-
-        print("\n🔧 Model Tuning (Single Features)")
-        print("     [6]  Tuned single feature results for a model")
-        print("     [7]  Tuned baseline score for all models")
-
-        print("\n🧪 Effect of Model Tuning on Engineered Feature Combinations")
-        print("     [8]  Tuned score for best feature combination (from FE)")
-        print("     [9]  Tuned scores for top 10 feature combinations (from FE)")
-        print("     [10]  Tuned scores for balanced 10 feature combinations (from FE)")
-
-        print("\n  [0]  Exit")
-        print("=" * 50)
-
+        print_menu()
         choice = input("Choose an option: ").strip()
         if choice == "0":
             break
