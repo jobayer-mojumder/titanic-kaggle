@@ -19,7 +19,7 @@ MODEL_KEYS_REV = {v[0]: k for k, v in MODEL_KEYS.items()}
 
 def choose_mode():
     print("\n📁 Choose result mode:")
-    print("  [1] Kaggle")
+    print("  [1] Kaggle (default)")
     print("  [2] Local")
     mode = input("Select mode (default Kaggle): ").strip()
     return "local" if mode == "2" else "kaggle"
