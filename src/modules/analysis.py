@@ -1,8 +1,6 @@
 import os
 import pandas as pd
 
-RESULTS_PATH = "results/kaggle/features-combinations"
-
 MODEL_INDEX = {
     "dt": 1,
     "xgb": 2,
@@ -12,13 +10,14 @@ MODEL_INDEX = {
 }
 
 
-def load_combination_file(model_key):
+def load_combination_file(model_key, mode="kaggle"):
+    base_path = f"results/{mode}/features-combinations"
     model_index = MODEL_INDEX.get(model_key)
     if not model_index:
         raise ValueError(f"Invalid model key: {model_key}")
 
     filename = f"{model_index}_{model_key}_comb.csv"
-    file_path = os.path.join(RESULTS_PATH, filename)
+    file_path = os.path.join(base_path, filename)
 
     if not os.path.exists(file_path):
         print(f"⚠️ File not found: {file_path}")
@@ -31,16 +30,17 @@ def load_combination_file(model_key):
         return None
 
 
-def get_best_single_feature_combination(model_key):
-    df = load_combination_file(model_key)
+def get_best_single_feature_combination(model_key, mode="kaggle"):
+    df = load_combination_file(model_key, mode=mode)
     if (
         df is None
-        or "kaggle_score" not in df.columns
+        or ("kaggle_score" not in df.columns and "accuracy" not in df.columns)
         or "feature_nums" not in df.columns
     ):
         return []
 
-    best_row = df.sort_values(by="kaggle_score", ascending=False).iloc[0]
+    score_col = "kaggle_score" if mode == "kaggle" else "accuracy"
+    best_row = df.sort_values(by=score_col, ascending=False).iloc[0]
     feature_str = best_row["feature_nums"]
 
     try:
@@ -50,16 +50,17 @@ def get_best_single_feature_combination(model_key):
         return []
 
 
-def get_10_best_feature_combinations(model_key):
-    df = load_combination_file(model_key)
+def get_10_best_feature_combinations(model_key, mode="kaggle"):
+    df = load_combination_file(model_key, mode=mode)
     if (
         df is None
-        or "kaggle_score" not in df.columns
+        or ("kaggle_score" not in df.columns and "accuracy" not in df.columns)
         or "feature_nums" not in df.columns
     ):
         return []
 
-    df_sorted = df.sort_values(by="kaggle_score", ascending=False).drop_duplicates(
+    score_col = "kaggle_score" if mode == "kaggle" else "accuracy"
+    df_sorted = df.sort_values(by=score_col, ascending=False).drop_duplicates(
         subset="feature_nums"
     )
     top_10 = df_sorted.head(10)
@@ -75,23 +76,22 @@ def get_10_best_feature_combinations(model_key):
     return combinations
 
 
-def get_10_balanced_feature_combinations(model_key):
-    df = load_combination_file(model_key)
+def get_10_balanced_feature_combinations(model_key, mode="kaggle"):
+    df = load_combination_file(model_key, mode=mode)
     if (
         df is None
-        or "kaggle_score" not in df.columns
+        or ("kaggle_score" not in df.columns and "accuracy" not in df.columns)
         or "feature_nums" not in df.columns
     ):
         return []
 
-    df_sorted = df.sort_values(by="kaggle_score", ascending=False).reset_index(
-        drop=True
-    )
+    score_col = "kaggle_score" if mode == "kaggle" else "accuracy"
+    df_sorted = df.sort_values(by=score_col, ascending=False).reset_index(drop=True)
     total = len(df_sorted)
 
     if total < 10:
         print(f"⚠️ Not enough data for balanced selection in model {model_key}")
-        return get_10_best_feature_combinations(model_key)
+        return get_10_best_feature_combinations(model_key, mode=mode)
 
     top_rows = df_sorted.head(3)
     mid_percentiles = [0.4, 0.5, 0.6, 0.7]
