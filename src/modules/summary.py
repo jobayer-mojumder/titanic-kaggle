@@ -127,7 +127,7 @@ def update_summary_csv(mode, row):
     }
 
     if mode == "local":
-        summary_row["cv_accuracy"] = row.get("accuracy")
+        summary_row["accuracy"] = row.get("accuracy")
         summary_row["cv_std"] = row.get("std")
     else:
         summary_row["kaggle_score"] = row.get("kaggle_score")
@@ -136,7 +136,7 @@ def update_summary_csv(mode, row):
         "model",
         "feature_nums",
         "baseline",
-        "cv_accuracy" if mode == "local" else "kaggle_score",
+        "accuracy" if mode == "local" else "kaggle_score",
         "improvement",
         "cv_std" if mode == "local" else None,
         "tuned",
