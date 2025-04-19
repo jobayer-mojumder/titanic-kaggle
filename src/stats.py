@@ -18,6 +18,7 @@ MODEL_KEYS_REV = {v[0]: k for k, v in MODEL_KEYS.items()}
 
 
 def choose_mode():
+    os.system("cls" if os.name == "nt" else "clear")
     print("\n📁 Choose result mode:")
     print("  [1] Kaggle (default)")
     print("  [2] Local")
@@ -173,18 +174,27 @@ def print_menu(mode):
     print("     [9]  Tuned top 10 combinations (from FE)")
     print("     [10] Tuned balanced 10 combinations (from FE)")
 
-    print("\n  [0] Exit")
+    print("\n📊")
+    print("     [11] Separate single feature summary for all models (Untuned)")
+    print("     [12] Separate single feature summary for all models (Tuned)")
+
+    print("\n⚙️ Settings")
+    print("    [m]  Change mode")
+    print("    [0] Exit")
     print("=" * 50)
 
 
 def stats_menu():
     global mode
-    mode = choose_mode()
+    mode = "kaggle"
     while True:
         print_menu(mode)
         choice = input("Choose an option: ").strip()
         if choice == "0":
             break
+        elif choice.lower() == "m":
+            mode = choose_mode()
+            continue
         elif choice == "1":
             show_best_combinations_all(tuned=False, mode=mode)
         elif choice == "2":
@@ -295,6 +305,79 @@ def stats_menu():
                     tuned=True,
                     mode=mode,
                 )
+        elif choice == "11":
+            out_dir = os.path.join("stats", mode, "single")
+            os.makedirs(out_dir, exist_ok=True)
+
+            for feature_num in range(1, 12):
+                rows = []
+                for k, (model_key, model_label, model_index) in MODEL_KEYS.items():
+                    df = extract_single_feature_scores(
+                        model_key, model_index, tuned=False, mode=mode
+                    )
+                    if df is not None:
+                        df["feature_nums"] = df["feature_nums"].astype(str).str.strip()
+                        match = df[df["feature_nums"] == str(feature_num)]
+                        if not match.empty:
+                            row = match.iloc[0]
+                            rows.append(
+                                {
+                                    "model": model_label,
+                                    "model_key": model_key,
+                                    "feature_num": feature_num,
+                                    score_column(mode): row[score_column(mode)],
+                                    "improvement": row.get("improvement", ""),
+                                    "tuned": 0,
+                                }
+                            )
+                if rows:
+                    out_df = pd.DataFrame(rows)
+                    filename = f"single_feature_{feature_num}_{mode}.csv"
+                    out_path = os.path.join(out_dir, filename)
+                    out_df.to_csv(out_path, index=False)
+                    display_table(
+                        out_df,
+                        f"Feature {feature_num} Results Across Models (Untuned)",
+                        filename,
+                        os.path.join(mode, "single"),
+                    )
+
+        elif choice == "12":
+            out_dir = os.path.join("stats", mode, "single")
+            os.makedirs(out_dir, exist_ok=True)
+
+            for feature_num in range(1, 12):
+                rows = []
+                for k, (model_key, model_label, model_index) in MODEL_KEYS.items():
+                    df = extract_single_feature_scores(
+                        model_key, model_index, tuned=True, mode=mode
+                    )
+                    if df is not None:
+                        df["feature_nums"] = df["feature_nums"].astype(str).str.strip()
+                        match = df[df["feature_nums"] == str(feature_num)]
+                        if not match.empty:
+                            row = match.iloc[0]
+                            rows.append(
+                                {
+                                    "model": model_label,
+                                    "model_key": model_key,
+                                    "feature_num": feature_num,
+                                    score_column(mode): row[score_column(mode)],
+                                    "improvement": row.get("improvement", ""),
+                                    "tuned": 1,
+                                }
+                            )
+                if rows:
+                    out_df = pd.DataFrame(rows)
+                    filename = f"single_feature_{feature_num}_{mode}_tuned.csv"
+                    out_path = os.path.join(out_dir, filename)
+                    out_df.to_csv(out_path, index=False)
+                    display_table(
+                        out_df,
+                        f"Feature {feature_num} Results Across Models (Tuned)",
+                        filename,
+                        os.path.join(mode, "single"),
+                    )
 
 
 if __name__ == "__main__":
