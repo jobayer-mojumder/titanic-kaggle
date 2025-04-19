@@ -166,6 +166,8 @@ def print_menu(mode):
     print("\n📊")
     print("     [11] Separate single feature summary for all models (Untuned)")
     print("     [12] Separate single feature summary for all models (Tuned)")
+    print("\n🧪 Utility")
+    print("     [99] Run all reports for all models")
     print("\n⚙️ Settings")
     print("    [m]  Change mode")
     print("    [0]  Exit")
@@ -358,6 +360,141 @@ def stats_menu():
                         filename,
                         os.path.join(mode, "single"),
                     )
+        elif choice == "99":
+            print("🧪 Running all 12 reports for all models...\n")
+            for auto_choice in [str(i) for i in range(1, 13)]:
+                print(f"\n▶️ Running option [{auto_choice}]")
+                run_menu_choice(auto_choice, mode)
+            print("\n✅ All reports completed.")
+            input("Press Enter to return to menu...")
+
+
+def run_menu_choice(choice, mode):
+    if choice == "1":
+        for _, (model_key, model_label, model_index) in MODEL_KEYS.items():
+            combo = get_best_single_feature_combination(model_key, mode=mode)
+            rows = extract_rows_for_combos(model_key, [combo], tuned=False, mode=mode)
+            if rows:
+                df = pd.DataFrame(rows)
+                df.insert(0, "rank", 1)
+                df = df[
+                    ["rank", "feature_nums", score_column(mode), "improvement", "tuned"]
+                ]
+                display_table(
+                    df,
+                    f"Best Combination for {model_label}",
+                    f"{model_index}_{model_key}_best.csv",
+                    mode,
+                )
+
+    elif choice in ["2", "3", "4", "6", "9", "10"]:
+        tuned = choice in ["6", "9", "10"]
+        for _, (model_key, model_label, model_index) in MODEL_KEYS.items():
+            if choice in ["2", "9"]:
+                combos = get_10_best_feature_combinations(model_key, mode=mode)
+            elif choice in ["3", "10"]:
+                combos = get_10_balanced_feature_combinations(model_key, mode=mode)
+
+            if choice in ["2", "3", "9", "10"]:
+                title = f"{'Tuned ' if tuned else ''}{'Top' if choice in ['2','9'] else 'Balanced'} 10 for {model_label}"
+                fname = f"{model_index}_{model_key}_{'top10' if choice in ['2','9'] else 'balanced10'}{'_tuned' if tuned else ''}.csv"
+                show_combinations(
+                    model_key,
+                    model_label,
+                    model_index,
+                    combos,
+                    title,
+                    fname,
+                    tuned=tuned,
+                    mode=mode,
+                )
+
+            elif choice in ["4", "6"]:
+                df = extract_single_feature_scores(
+                    model_key, model_index, tuned=tuned, mode=mode
+                )
+                if df is not None:
+                    cols = [
+                        "rank",
+                        "feature_nums",
+                        score_column(mode),
+                        "improvement",
+                        "tuned",
+                    ]
+                    if tuned and "params" in df.columns:
+                        cols.append("params")
+                    df = df[cols]
+                    filename = f"{model_index}_{model_key}_{'single_tuned' if tuned else 'single_features'}.csv"
+                    display_table(
+                        df,
+                        f"{'Tuned ' if tuned else ''}Single Feature Results for {model_label}",
+                        filename,
+                        mode,
+                    )
+
+    elif choice in ["5", "7"]:
+        tuned = choice == "7"
+        df = extract_baseline_scores(tuned=tuned, mode=mode)
+        if df is not None:
+            filename = f"baseline_scores_{mode}{'_tuned' if tuned else '_untuned'}.csv"
+            display_table(
+                df,
+                f"{'Tuned ' if tuned else 'Untuned'} Baseline Scores",
+                filename,
+                mode,
+            )
+
+    elif choice in ["8"]:
+        for _, (model_key, model_label, model_index) in MODEL_KEYS.items():
+            combo = get_best_single_feature_combination(model_key, mode=mode)
+            show_combinations(
+                model_key,
+                model_label,
+                model_index,
+                [combo],
+                f"Tuned Best Combination for {model_label}",
+                f"{model_index}_{model_key}_best_tuned.csv",
+                tuned=True,
+                mode=mode,
+            )
+
+    elif choice in ["11", "12"]:
+        tuned = choice == "12"
+        out_dir = os.path.join("stats", mode, "single")
+        os.makedirs(out_dir, exist_ok=True)
+        for feature_num in range(1, 12):
+            rows = []
+            for _, (model_key, model_label, model_index) in MODEL_KEYS.items():
+                df = extract_single_feature_scores(
+                    model_key, model_index, tuned=tuned, mode=mode
+                )
+                if df is not None:
+                    df["feature_nums"] = df["feature_nums"].astype(str).str.strip()
+                    match = df[df["feature_nums"] == str(feature_num)]
+                    if not match.empty:
+                        row = match.iloc[0]
+                        row_data = {
+                            "model": model_label,
+                            "model_key": model_key,
+                            "feature_num": feature_num,
+                            score_column(mode): row[score_column(mode)],
+                            "improvement": row.get("improvement", ""),
+                            "tuned": 1 if tuned else 0,
+                        }
+                        if "params" in row:
+                            row_data["params"] = row["params"]
+                        rows.append(row_data)
+            if rows:
+                out_df = pd.DataFrame(rows)
+                filename = f"single_feature_{feature_num}_{mode}{'_tuned' if tuned else ''}.csv"
+                out_path = os.path.join(out_dir, filename)
+                out_df.to_csv(out_path, index=False)
+                display_table(
+                    out_df,
+                    f"Feature {feature_num} Across Models ({'Tuned' if tuned else 'Untuned'})",
+                    filename,
+                    os.path.join(mode, "single"),
+                )
 
 
 if __name__ == "__main__":
