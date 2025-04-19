@@ -59,6 +59,8 @@ def extract_rows_for_combos(model_key, combos, tuned=False, mode="kaggle"):
         return []
     df = pd.read_csv(path)
     df["feature_nums"] = df["feature_nums"].astype(str).str.strip()
+    if tuned and "params" in df.columns:
+        df["params"] = df["params"].fillna("").astype(str)
     rows = []
     for combo in combos:
         combo_str = ", ".join(map(str, sorted(combo)))
@@ -82,6 +84,8 @@ def extract_single_feature_scores(model_key, model_index, tuned=False, mode="kag
         return None
     df["rank"] = df[score_column(mode)].rank(method="min", ascending=False).astype(int)
     df = df.sort_values(by=score_column(mode), ascending=False)
+    if tuned and "params" in df.columns:
+        df["params"] = df["params"].fillna("").astype(str)
     return df
 
 
@@ -99,11 +103,20 @@ def extract_baseline_scores(tuned=False, mode="kaggle"):
         row = filtered[filtered["model"] == model_key]
         if not row.empty:
             score = row.iloc[0][score_column(mode)]
-            rows.append((model_label, model_key, round(score, 5)))
+            row_data = [model_label, model_key, round(score, 5)]
+            if tuned and "params" in row.columns:
+                row_data.append(row.iloc[0].get("params", ""))
+            rows.append(row_data)
         else:
-            rows.append((model_label, model_key, "Not found"))
-    colname = f"{'Tuned' if tuned else 'Untuned'} Baseline {mode.title()} Score"
-    return pd.DataFrame(rows, columns=["Model", "Key", colname])
+            rows.append([model_label, model_key, "Not found"])
+    columns = [
+        "Model",
+        "Key",
+        f"{'Tuned' if tuned else 'Untuned'} Baseline {mode.title()} Score",
+    ]
+    if tuned and "params" in df.columns:
+        columns.append("params")
+    return pd.DataFrame(rows, columns=columns)
 
 
 def score_column(mode):
@@ -126,33 +139,11 @@ def show_combinations(
         return
     df = pd.DataFrame(rows)
     df.insert(0, "rank", range(1, len(df) + 1))
-    df = df[["rank", "feature_nums", score_column(mode), "improvement", "tuned"]]
+    cols = ["rank", "feature_nums", score_column(mode), "improvement", "tuned"]
+    if tuned and "params" in df.columns:
+        cols.append("params")
+    df = df[cols]
     display_table(df, title, filename, mode)
-
-
-def show_best_combinations_all(tuned=False, mode="kaggle"):
-    rows = []
-    for _, (model_key, model_label, model_index) in MODEL_KEYS.items():
-        combo = get_best_single_feature_combination(model_key, mode=mode)
-        result = extract_rows_for_combos(model_key, [combo], tuned=tuned, mode=mode)
-        if result:
-            row = result[0]
-            rows.append(
-                {
-                    "rank": model_index,
-                    "model": model_label,
-                    "model_key": model_key,
-                    "feature_nums": row["feature_nums"],
-                    "score": row.get(score_column(mode)),
-                    "improvement": row.get("improvement", ""),
-                    "tuned": row.get("tuned", ""),
-                }
-            )
-    df = pd.DataFrame(rows).sort_values(by="rank").reset_index(drop=True)
-    label = "Tuned" if tuned else "Untuned"
-    title = f"Best {label} Feature Combination for All Models ({mode.title()})"
-    file = f"best_combinations_{mode}{'_tuned' if tuned else '_features'}.csv"
-    display_table(df, title, file, mode)
 
 
 def print_menu(mode):
@@ -166,21 +157,18 @@ def print_menu(mode):
     print("     [3]  Balanced 10 feature combinations for a model")
     print("     [4]  Single feature results for a model")
     print("     [5]  Baseline score (untuned) for all models")
-
     print("\n🔧 Model Tuning")
     print("     [6]  Tuned single feature results for a model")
     print("     [7]  Tuned baseline score for all models")
     print("     [8]  Tuned best combination (from FE)")
     print("     [9]  Tuned top 10 combinations (from FE)")
     print("     [10] Tuned balanced 10 combinations (from FE)")
-
     print("\n📊")
     print("     [11] Separate single feature summary for all models (Untuned)")
     print("     [12] Separate single feature summary for all models (Tuned)")
-
     print("\n⚙️ Settings")
     print("    [m]  Change mode")
-    print("    [0] Exit")
+    print("    [0]  Exit")
     print("=" * 50)
 
 
@@ -196,7 +184,28 @@ def stats_menu():
             mode = choose_mode()
             continue
         elif choice == "1":
-            show_best_combinations_all(tuned=False, mode=mode)
+            from modules.analysis import get_best_single_feature_combination
+
+            rows = []
+            for _, (model_key, model_label, model_index) in MODEL_KEYS.items():
+                combo = get_best_single_feature_combination(model_key, mode=mode)
+                result = extract_rows_for_combos(
+                    model_key, [combo], tuned=False, mode=mode
+                )
+                if result:
+                    rows.append(result[0])
+            if rows:
+                df = pd.DataFrame(rows)
+                df.insert(0, "rank", range(1, len(df) + 1))
+                df = df[
+                    ["rank", "feature_nums", score_column(mode), "improvement", "tuned"]
+                ]
+                display_table(
+                    df,
+                    "Best Feature Combination for All Models",
+                    "best_combinations.csv",
+                    mode,
+                )
         elif choice == "2":
             model_key, model_label, model_index = select_model()
             if model_key:
@@ -232,24 +241,29 @@ def stats_menu():
                     model_key, model_index, tuned=False, mode=mode
                 )
                 if df is not None:
-                    title = f"Single Feature Results for {model_label} ({mode.title()})"
-                    filename = f"{model_index}_{model_key}_single_features.csv"
-                    df = df[
-                        [
-                            "rank",
-                            "feature_nums",
-                            score_column(mode),
-                            "improvement",
-                            "tuned",
-                        ]
+                    cols = [
+                        "rank",
+                        "feature_nums",
+                        score_column(mode),
+                        "improvement",
+                        "tuned",
                     ]
-                    display_table(df, title, filename, mode)
+                    df = df[cols]
+                    display_table(
+                        df,
+                        f"Single Feature Results for {model_label}",
+                        f"{model_index}_{model_key}_single_features.csv",
+                        mode,
+                    )
         elif choice == "5":
             df = extract_baseline_scores(tuned=False, mode=mode)
             if df is not None:
-                title = f"Baseline Scores (Untuned) for All Models ({mode.title()})"
-                filename = f"baseline_scores_{mode}_features.csv"
-                display_table(df, title, filename, mode)
+                display_table(
+                    df,
+                    "Baseline Scores (Untuned) for All Models",
+                    f"baseline_scores_{mode}_untuned.csv",
+                    mode,
+                )
         elif choice == "6":
             model_key, model_label, model_index = select_model()
             if model_key:
@@ -257,124 +271,90 @@ def stats_menu():
                     model_key, model_index, tuned=True, mode=mode
                 )
                 if df is not None:
-                    title = f"Tuned Single Feature Results for {model_label} ({mode.title()})"
-                    filename = f"{model_index}_{model_key}_single_tuned.csv"
-                    df = df[
-                        [
-                            "rank",
-                            "feature_nums",
-                            score_column(mode),
-                            "improvement",
-                            "tuned",
-                        ]
+                    cols = [
+                        "rank",
+                        "feature_nums",
+                        score_column(mode),
+                        "improvement",
+                        "tuned",
                     ]
-                    display_table(df, title, filename, mode)
+                    if "params" in df.columns:
+                        cols.append("params")
+                    df = df[cols]
+                    display_table(
+                        df,
+                        f"Tuned Single Feature Results for {model_label}",
+                        f"{model_index}_{model_key}_single_tuned.csv",
+                        mode,
+                    )
         elif choice == "7":
             df = extract_baseline_scores(tuned=True, mode=mode)
             if df is not None:
-                title = f"Baseline Scores (Tuned) for All Models ({mode.title()})"
-                filename = f"baseline_scores_{mode}_tuned.csv"
-                display_table(df, title, filename, mode)
-        elif choice == "8":
-            show_best_combinations_all(tuned=True, mode=mode)
-        elif choice == "9":
+                display_table(
+                    df,
+                    "Baseline Scores (Tuned) for All Models",
+                    f"baseline_scores_{mode}_tuned.csv",
+                    mode,
+                )
+        elif choice in ["8", "9", "10"]:
             model_key, model_label, model_index = select_model()
             if model_key:
-                combos = get_10_best_feature_combinations(model_key, mode=mode)
+                if choice == "8":
+                    combos = [get_best_single_feature_combination(model_key, mode=mode)]
+                    title = f"Tuned Best Combination for {model_label}"
+                    fname = f"{model_index}_{model_key}_best_tuned.csv"
+                elif choice == "9":
+                    combos = get_10_best_feature_combinations(model_key, mode=mode)
+                    title = f"Tuned Top 10 Combinations for {model_label}"
+                    fname = f"{model_index}_{model_key}_top10_tuned.csv"
+                else:
+                    combos = get_10_balanced_feature_combinations(model_key, mode=mode)
+                    title = f"Tuned Balanced 10 Combinations for {model_label}"
+                    fname = f"{model_index}_{model_key}_balanced10_tuned.csv"
                 show_combinations(
                     model_key,
                     model_label,
                     model_index,
                     combos,
-                    f"Tuned Top 10 Combinations for {model_label}",
-                    f"{model_index}_{model_key}_top10_tuned.csv",
+                    title,
+                    fname,
                     tuned=True,
                     mode=mode,
                 )
-        elif choice == "10":
-            model_key, model_label, model_index = select_model()
-            if model_key:
-                combos = get_10_balanced_feature_combinations(model_key, mode=mode)
-                show_combinations(
-                    model_key,
-                    model_label,
-                    model_index,
-                    combos,
-                    f"Tuned Balanced 10 Combinations for {model_label}",
-                    f"{model_index}_{model_key}_balanced10_tuned.csv",
-                    tuned=True,
-                    mode=mode,
-                )
-        elif choice == "11":
+        elif choice in ["11", "12"]:
+            tuned = choice == "12"
             out_dir = os.path.join("stats", mode, "single")
             os.makedirs(out_dir, exist_ok=True)
-
             for feature_num in range(1, 12):
                 rows = []
                 for k, (model_key, model_label, model_index) in MODEL_KEYS.items():
                     df = extract_single_feature_scores(
-                        model_key, model_index, tuned=False, mode=mode
+                        model_key, model_index, tuned=tuned, mode=mode
                     )
                     if df is not None:
                         df["feature_nums"] = df["feature_nums"].astype(str).str.strip()
                         match = df[df["feature_nums"] == str(feature_num)]
                         if not match.empty:
                             row = match.iloc[0]
-                            rows.append(
-                                {
-                                    "model": model_label,
-                                    "model_key": model_key,
-                                    "feature_num": feature_num,
-                                    score_column(mode): row[score_column(mode)],
-                                    "improvement": row.get("improvement", ""),
-                                    "tuned": 0,
-                                }
-                            )
+                            row_data = {
+                                "model": model_label,
+                                "model_key": model_key,
+                                "feature_num": feature_num,
+                                score_column(mode): row[score_column(mode)],
+                                "improvement": row.get("improvement", ""),
+                                "tuned": 1 if tuned else 0,
+                            }
+                            if "params" in row:
+                                row_data["params"] = row["params"]
+                            rows.append(row_data)
                 if rows:
                     out_df = pd.DataFrame(rows)
-                    filename = f"single_feature_{feature_num}_{mode}.csv"
+                    filename = f"single_feature_{feature_num}_{mode}{'_tuned' if tuned else ''}.csv"
                     out_path = os.path.join(out_dir, filename)
                     out_df.to_csv(out_path, index=False)
                     display_table(
                         out_df,
-                        f"Feature {feature_num} Results Across Models (Untuned)",
-                        filename,
-                        os.path.join(mode, "single"),
-                    )
-
-        elif choice == "12":
-            out_dir = os.path.join("stats", mode, "single")
-            os.makedirs(out_dir, exist_ok=True)
-
-            for feature_num in range(1, 12):
-                rows = []
-                for k, (model_key, model_label, model_index) in MODEL_KEYS.items():
-                    df = extract_single_feature_scores(
-                        model_key, model_index, tuned=True, mode=mode
-                    )
-                    if df is not None:
-                        df["feature_nums"] = df["feature_nums"].astype(str).str.strip()
-                        match = df[df["feature_nums"] == str(feature_num)]
-                        if not match.empty:
-                            row = match.iloc[0]
-                            rows.append(
-                                {
-                                    "model": model_label,
-                                    "model_key": model_key,
-                                    "feature_num": feature_num,
-                                    score_column(mode): row[score_column(mode)],
-                                    "improvement": row.get("improvement", ""),
-                                    "tuned": 1,
-                                }
-                            )
-                if rows:
-                    out_df = pd.DataFrame(rows)
-                    filename = f"single_feature_{feature_num}_{mode}_tuned.csv"
-                    out_path = os.path.join(out_dir, filename)
-                    out_df.to_csv(out_path, index=False)
-                    display_table(
-                        out_df,
-                        f"Feature {feature_num} Results Across Models (Tuned)",
+                        f"Feature {feature_num} Results Across Models ({'Tuned' if tuned else 'Untuned'})",
                         filename,
                         os.path.join(mode, "single"),
                     )
