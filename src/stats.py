@@ -37,6 +37,20 @@ def select_model():
     return MODEL_KEYS.get(choice, (None, None, None))
 
 
+def get_baseline_cv_scores(input_path="results/summary_local.csv"):
+    if not os.path.exists(input_path) or os.stat(input_path).st_size == 0:
+        print("❌ summary_local.csv missing or empty.")
+        return pd.DataFrame()
+    summary_df = pd.read_csv(input_path)
+    summary_df["feature_nums"] = summary_df["feature_nums"].astype(str)
+    summary_df["tuned"] = summary_df["tuned"].astype(int)
+    baseline_df = summary_df[summary_df["feature_nums"] == "baseline"]
+    baseline_df = baseline_df[["model", "tuned", "cv_scores"]].rename(
+        columns={"cv_scores": "cv_scores_baseline"}
+    )
+    return baseline_df
+
+
 def calculate_partial_eta_squared(df):
     print("\n🔎 Starting ηp² calculation...")
 
@@ -44,19 +58,9 @@ def calculate_partial_eta_squared(df):
     df["feature_nums"] = df["feature_nums"].astype(str)
     df["tuned"] = df["tuned"].astype(int)
 
-    input_file = os.path.join("results", "summary_local.csv")
-    if not os.path.exists(input_file) or os.stat(input_file).st_size == 0:
-        print("❌ summary_local.csv missing or empty.")
+    baseline_df = get_baseline_cv_scores()
+    if baseline_df.empty:
         return pd.DataFrame()
-
-    summary_df = pd.read_csv(input_file)
-    summary_df["feature_nums"] = summary_df["feature_nums"].astype(str)
-    summary_df["tuned"] = summary_df["tuned"].astype(int)
-
-    baseline_df = summary_df[summary_df["feature_nums"] == "baseline"]
-    baseline_df = baseline_df[["model", "tuned", "cv_scores"]].rename(
-        columns={"cv_scores": "cv_scores_baseline"}
-    )
 
     df = df.merge(baseline_df, on=["model", "tuned"], how="left")
 
@@ -100,8 +104,7 @@ def calculate_partial_eta_squared(df):
             }
         )
 
-    result_df = pd.DataFrame(results)
-    return result_df
+    return pd.DataFrame(results)
 
 
 def save_performance_data(df, file_name):
@@ -170,8 +173,6 @@ def display_table(df, title, file_name, mode):
         df["feature_num"] = df["feature_num"].astype(str)
         df["model_key"] = df["model_key"].astype(str)
 
-        print("\n🔄 Attempting merge with columns:", eta_df.columns.tolist())
-
         df = df.merge(
             eta_df[
                 [
@@ -203,7 +204,6 @@ def display_table(df, title, file_name, mode):
 
         cols_to_show = [
             "model",
-            "model_key",
             "tuned",
             "feature_num",
             "kaggle_score",
