@@ -35,13 +35,13 @@ def get_best_single_feature_combination(model_key, mode="kaggle"):
     if (
         df is None
         or ("kaggle_score" not in df.columns and "accuracy" not in df.columns)
-        or "feature_nums" not in df.columns
+        or "feature_num" not in df.columns
     ):
         return []
 
     score_col = "kaggle_score" if mode == "kaggle" else "accuracy"
     best_row = df.sort_values(by=score_col, ascending=False).iloc[0]
-    feature_str = best_row["feature_nums"]
+    feature_str = best_row["feature_num"]
 
     try:
         return [int(x.strip()) for x in feature_str.split(",")]
@@ -55,23 +55,23 @@ def get_10_best_feature_combinations(model_key, mode="kaggle"):
     if (
         df is None
         or ("kaggle_score" not in df.columns and "accuracy" not in df.columns)
-        or "feature_nums" not in df.columns
+        or "feature_num" not in df.columns
     ):
         return []
 
     score_col = "kaggle_score" if mode == "kaggle" else "accuracy"
     df_sorted = df.sort_values(by=score_col, ascending=False).drop_duplicates(
-        subset="feature_nums"
+        subset="feature_num"
     )
     top_10 = df_sorted.head(10)
     combinations = []
 
     for _, row in top_10.iterrows():
         try:
-            combo = [int(x.strip()) for x in row["feature_nums"].split(",")]
+            combo = [int(x.strip()) for x in row["feature_num"].split(",")]
             combinations.append(combo)
         except Exception as e:
-            print(f"⚠️ Skipping invalid row: {row['feature_nums']} ({e})")
+            print(f"⚠️ Skipping invalid row: {row['feature_num']} ({e})")
 
     return combinations
 
@@ -81,7 +81,7 @@ def get_10_balanced_feature_combinations(model_key, mode="kaggle"):
     if (
         df is None
         or ("kaggle_score" not in df.columns and "accuracy" not in df.columns)
-        or "feature_nums" not in df.columns
+        or "feature_num" not in df.columns
     ):
         return []
 
@@ -104,9 +104,9 @@ def get_10_balanced_feature_combinations(model_key, mode="kaggle"):
 
     for _, row in balanced_rows.iterrows():
         try:
-            combo = [int(x.strip()) for x in row["feature_nums"].split(",")]
+            combo = [int(x.strip()) for x in row["feature_num"].split(",")]
             combinations.append(combo)
         except Exception as e:
-            print(f"⚠️ Skipping invalid row: {row['feature_nums']} ({e})")
+            print(f"⚠️ Skipping invalid row: {row['feature_num']} ({e})")
 
     return combinations

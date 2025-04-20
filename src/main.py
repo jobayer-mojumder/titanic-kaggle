@@ -14,15 +14,15 @@ from modules.constant import DEFAULT_MODELS
 warnings.filterwarnings("ignore")
 
 
-def run_model(model_key, feature_nums, tune=False):
-    feature_nums = sorted(feature_nums)
-    print(f"\n\n🚀 Running {model_key} with: {feature_nums or 'Baseline only'}")
+def run_model(model_key, feature_num, tune=False):
+    feature_num = sorted(feature_num)
+    print(f"\n\n🚀 Running {model_key} with: {feature_num or 'Baseline only'}")
 
-    if result_already_logged(model_key, feature_nums, tuned=tune):
+    if result_already_logged(model_key, feature_num, tuned=tune):
         print(f"⏭️  {model_key} - Already logged in result CSV. Skipping...")
         return
 
-    selected_features = [FEATURE_MAP[n] for n in feature_nums]
+    selected_features = [FEATURE_MAP[n] for n in feature_num]
 
     train = pd.read_csv("data/train.csv")
     test = pd.read_csv("data/test.csv")
@@ -47,7 +47,7 @@ def run_model(model_key, feature_nums, tune=False):
 
     print(f"📊 CV Scores: {cv_scores}")
 
-    out_file = get_submission_path(model_key, feature_nums)
+    out_file = get_submission_path(model_key, feature_num)
     pd.DataFrame({"PassengerId": test["PassengerId"], "Survived": preds}).to_csv(
         out_file, index=False
     )
@@ -55,7 +55,7 @@ def run_model(model_key, feature_nums, tune=False):
 
     log_results(
         model_key,
-        feature_nums,
+        feature_num,
         acc,
         out_file,
         tuned=tune,

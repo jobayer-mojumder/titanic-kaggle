@@ -13,7 +13,7 @@ def load_finished_combinations(model_key):
     path = f"results/kaggle/tuning-combinations/{index}_{model_key}_comb_tuned.csv"
     if os.path.exists(path):
         df = pd.read_csv(path)
-        return set(df["feature_nums"].dropna().astype(str))
+        return set(df["feature_num"].dropna().astype(str))
     return set()
 
 
@@ -30,9 +30,9 @@ def run_all_general_combinations(run_model_func, model_key, tune=False):
         finished_combos = load_finished_combinations(model_key)
 
     for combo in GENERAL_FEATURE_COMBINATIONS:
-        feature_nums_str = ", ".join(map(str, combo))
-        if tune and feature_nums_str in finished_combos:
-            print(f"⏭️ {model_key} - Skipping already tuned combo: {feature_nums_str}")
+        feature_num_str = ", ".join(map(str, combo))
+        if tune and feature_num_str in finished_combos:
+            print(f"⏭️ {model_key} - Skipping already tuned combo: {feature_num_str}")
             continue
 
         run_model_func(model_key, combo, tune=tune)
@@ -53,9 +53,9 @@ def run_all_features_in_one_combination(run_model_func, model_key, tune=False):
     finished_combos = set()
     if tune:
         finished_combos = load_finished_combinations(model_key)
-    feature_nums_str = ", ".join(map(str, ALL_FEATURE_COMBINATION))
-    if tune and feature_nums_str in finished_combos:
-        print(f"⏭️ {model_key} - Skipping already tuned combo: {feature_nums_str}")
+    feature_num_str = ", ".join(map(str, ALL_FEATURE_COMBINATION))
+    if tune and feature_num_str in finished_combos:
+        print(f"⏭️ {model_key} - Skipping already tuned combo: {feature_num_str}")
         return
     run_model_func(model_key, ALL_FEATURE_COMBINATION, tune=tune)
 
@@ -70,9 +70,9 @@ def run_best_single_feature_combination(run_model_func, model_key, tune=False):
     finished_combos = set()
     if tune:
         finished_combos = load_finished_combinations(model_key)
-    feature_nums_str = ", ".join(map(str, combination))
-    if tune and feature_nums_str in finished_combos:
-        print(f"⏭️ {model_key} - Skipping already tuned combo: {feature_nums_str}")
+    feature_num_str = ", ".join(map(str, combination))
+    if tune and feature_num_str in finished_combos:
+        print(f"⏭️ {model_key} - Skipping already tuned combo: {feature_num_str}")
         return
     run_model_func(model_key, combination, tune=tune)
 
@@ -89,9 +89,9 @@ def run_10_balanced_feature_combinations(run_model_func, model_key, tune=False):
         finished_combos = load_finished_combinations(model_key)
 
     for combo in combinations:
-        feature_nums_str = ", ".join(map(str, combo))
-        if tune and feature_nums_str in finished_combos:
-            print(f"⏭️ {model_key} - Skipping already tuned combo: {feature_nums_str}")
+        feature_num_str = ", ".join(map(str, combo))
+        if tune and feature_num_str in finished_combos:
+            print(f"⏭️ {model_key} - Skipping already tuned combo: {feature_num_str}")
             continue
 
         run_model_func(model_key, combo, tune=tune)
@@ -109,9 +109,9 @@ def run_10_best_feature_combinations(run_model_func, model_key, tune=False):
         finished_combos = load_finished_combinations(model_key)
 
     for combo in combinations:
-        feature_nums_str = ", ".join(map(str, combo))
-        if tune and feature_nums_str in finished_combos:
-            print(f"⏭️ {model_key} - Skipping already tuned combo: {feature_nums_str}")
+        feature_num_str = ", ".join(map(str, combo))
+        if tune and feature_num_str in finished_combos:
+            print(f"⏭️ {model_key} - Skipping already tuned combo: {feature_num_str}")
             continue
 
         run_model_func(model_key, combo, tune=tune)

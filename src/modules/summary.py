@@ -84,28 +84,28 @@ def is_result_duplicate(file_path, model_name, feature_str, tuned_flag):
     if not os.path.exists(file_path):
         return False
     try:
-        df = pd.read_csv(file_path, dtype={"feature_nums": str})
+        df = pd.read_csv(file_path, dtype={"feature_num": str})
         df["model"] = df["model"].astype(str).str.strip()
-        df["feature_nums"] = df["feature_nums"].astype(str).str.strip()
+        df["feature_num"] = df["feature_num"].astype(str).str.strip()
         df["tuned"] = df["tuned"].astype(int)
     except Exception:
         return False
 
     return not df[
         (df["model"] == model_name)
-        & (df["feature_nums"] == feature_str)
+        & (df["feature_num"] == feature_str)
         & (df["tuned"] == tuned_flag)
     ].empty
 
 
-def result_already_logged(model_name, feature_nums, tuned=False):
-    feature_nums = sorted(feature_nums)
-    feature_str = ", ".join(map(str, feature_nums)) if feature_nums else "baseline"
+def result_already_logged(model_name, feature_num, tuned=False):
+    feature_num = sorted(feature_num)
+    feature_str = ", ".join(map(str, feature_num)) if feature_num else "baseline"
     tuned_flag = 1 if tuned else 0
 
     for kaggle in [False, True]:
         base_dir = "results/kaggle" if kaggle else "results/local"
-        file_path = get_result_path(base_dir, model_name, feature_nums, tuned)
+        file_path = get_result_path(base_dir, model_name, feature_num, tuned)
         if is_result_duplicate(file_path, model_name, feature_str, tuned_flag):
             return True
     return False
@@ -120,7 +120,7 @@ def update_summary_csv(mode, row):
     summary_row = {
         "model": row.get("model"),
         "tuned": row.get("tuned", 0),
-        "feature_nums": row.get("feature_nums", "baseline"),
+        "feature_num": row.get("feature_num", "baseline"),
         "tuning_params": row.get("params", None),
         "improvement": row.get("improvement"),
         "baseline": row.get("baseline"),
@@ -136,7 +136,7 @@ def update_summary_csv(mode, row):
     column_order = [
         "model",
         "tuned",
-        "feature_nums",
+        "feature_num",
         "baseline",
         "accuracy" if mode == "local" else "kaggle_score",
         "improvement",
@@ -174,7 +174,7 @@ def log_results(
     row = {
         "model": model_name,
         "tuned": 1 if tuned else 0,
-        "feature_nums": feature_str,
+        "feature_num": feature_str,
         "baseline": BASELINE_SCORE.get(model_name, 0),
         "accuracy": truncate_float(accuracy),
         "std": truncate_float(std) if std is not None else None,
@@ -234,7 +234,7 @@ def compare_with_kaggle(
 
     row = {
         "model": model_name,
-        "feature_nums": feature_str,
+        "feature_num": feature_str,
         "baseline": KAGGLE_BASELINE_SCORE.get(model_name, 0),
         "kaggle_score": acc,
         "improvement": truncate_float(improvement),
@@ -262,11 +262,11 @@ def compare_with_kaggle(
     return acc
 
 
-def get_submission_path(model_key, feature_nums):
+def get_submission_path(model_key, feature_num):
     base_dir = os.getcwd()
     index = model_index_map.get(model_key, 0)
     folder_name = f"{index}_{model_key}"
-    sorted_features = sorted(feature_nums)
+    sorted_features = sorted(feature_num)
     suffix = "_".join(map(str, sorted_features)) if sorted_features else "base"
     out_dir = os.path.join(base_dir, "submissions", folder_name)
     os.makedirs(out_dir, exist_ok=True)

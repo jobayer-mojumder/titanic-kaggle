@@ -42,9 +42,9 @@ def get_baseline_cv_scores(input_path="results/summary_local.csv"):
         print("❌ summary_local.csv missing or empty.")
         return pd.DataFrame()
     summary_df = pd.read_csv(input_path)
-    summary_df["feature_nums"] = summary_df["feature_nums"].astype(str)
+    summary_df["feature_num"] = summary_df["feature_num"].astype(str)
     summary_df["tuned"] = summary_df["tuned"].astype(int)
-    baseline_df = summary_df[summary_df["feature_nums"] == "baseline"]
+    baseline_df = summary_df[summary_df["feature_num"] == "baseline"]
     baseline_df = baseline_df[["model", "tuned", "cv_scores"]].rename(
         columns={"cv_scores": "cv_scores_baseline"}
     )
@@ -55,7 +55,7 @@ def calculate_partial_eta_squared(df):
     print("\n🔎 Starting ηp² calculation...")
 
     df = df.copy()
-    df["feature_nums"] = df["feature_nums"].astype(str)
+    df["feature_num"] = df["feature_num"].astype(str)
     df["tuned"] = df["tuned"].astype(int)
 
     baseline_df = get_baseline_cv_scores()
@@ -97,7 +97,7 @@ def calculate_partial_eta_squared(df):
             {
                 "model": row["model"],
                 "tuned": row["tuned"],
-                "feature_nums": row["feature_nums"],
+                "feature_num": row["feature_num"],
                 "local_accuracy": round(group_mean, 5),
                 "mean_cv": round(group_mean, 5),
                 "eta_p2": round(eta_p2, 4),
@@ -107,7 +107,7 @@ def calculate_partial_eta_squared(df):
     return pd.DataFrame(results)
 
 
-def save_performance_data(df, file_name):
+def save_performance_data(df):
     print("\n📊 Calculating Partial Eta Squared...")
 
     input_file = os.path.join("results", "summary_local.csv")
@@ -118,17 +118,16 @@ def save_performance_data(df, file_name):
     summary_df = pd.read_csv(input_file)
 
     model_name_map = {v[1]: v[0] for v in MODEL_KEYS.values()}
-    df = df.rename(columns={"feature_num": "feature_nums"})
-    df["feature_nums"] = df["feature_nums"].astype(str)
+    df["feature_num"] = df["feature_num"].astype(str)
     df["tuned"] = df["tuned"].astype(int)
     df["model"] = df["model"].replace(model_name_map)
 
-    summary_df["feature_nums"] = summary_df["feature_nums"].astype(str)
+    summary_df["feature_num"] = summary_df["feature_num"].astype(str)
     summary_df["tuned"] = summary_df["tuned"].astype(int)
 
     merged = df.merge(
-        summary_df[["model", "tuned", "feature_nums", "cv_scores"]],
-        on=["model", "tuned", "feature_nums"],
+        summary_df[["model", "tuned", "feature_num", "cv_scores"]],
+        on=["model", "tuned", "feature_num"],
         how="left",
     )
 
@@ -143,9 +142,6 @@ def save_performance_data(df, file_name):
 
 
 def display_table(df, title, file_name, mode):
-    import pandas as pd
-    import os
-
     os.system("cls" if os.name == "nt" else "clear")
     if df.empty:
         print("⚠️ No data found.")
@@ -153,7 +149,7 @@ def display_table(df, title, file_name, mode):
 
     print(f"\n📊 {title}")
 
-    eta_df = save_performance_data(df.copy(), file_name)
+    eta_df = save_performance_data(df.copy())
 
     if eta_df is None:
         eta_df = pd.DataFrame()
@@ -166,7 +162,7 @@ def display_table(df, title, file_name, mode):
     )
 
     if not eta_df.empty and isinstance(eta_df, pd.DataFrame):
-        eta_df = eta_df.rename(columns={"feature_nums": "feature_num"})
+        eta_df = eta_df.rename(columns={"feature_num": "feature_num"})
         eta_df["feature_num"] = eta_df["feature_num"].astype(str)
         eta_df["model_key"] = eta_df["model"].astype(str)
 
@@ -242,19 +238,21 @@ def extract_rows_for_combos(model_key, combos, tuned=False, mode="kaggle"):
     if not os.path.exists(path):
         return []
     df = pd.read_csv(path)
-    df["feature_nums"] = df["feature_nums"].astype(str).str.strip()
+    df["feature_num"] = df["feature_num"].astype(str).str.strip()
     if tuned and "params" in df.columns:
         df["params"] = df["params"].fillna("").astype(str)
     rows = []
     for combo in combos:
         combo_str = ", ".join(map(str, sorted(combo)))
-        match = df[df["feature_nums"] == combo_str]
+        match = df[df["feature_num"] == combo_str]
         if not match.empty:
             rows.append(match.iloc[0].to_dict())
     return rows
 
 
-def extract_single_feature_scores(model_key, model_index, tuned=False, mode="kaggle"):
+def extract_single_feature_scores(
+    model_key, model_index, tuned=False, mode="kaggle", model_label=None
+):
     folder = "single-tuning" if tuned else "single-features"
     suffix = "single_tuned.csv" if tuned else "single.csv"
     filename = f"{model_index}_{model_key}_{suffix}"
@@ -267,6 +265,8 @@ def extract_single_feature_scores(model_key, model_index, tuned=False, mode="kag
         print("⚠️ No data found.")
         return None
     df["rank"] = df[score_column(mode)].rank(method="min", ascending=False).astype(int)
+    df["model"] = model_label
+    df["model_key"] = model_key
     df = df.sort_values(by=score_column(mode), ascending=False)
     if tuned and "params" in df.columns:
         df["params"] = df["params"].fillna("").astype(str)
@@ -278,29 +278,28 @@ def extract_baseline_scores(tuned=False, mode="kaggle"):
     if not os.path.exists(summary_path):
         print(f"❌ Summary file not found at {summary_path}")
         return None
+
     df = pd.read_csv(summary_path)
     filtered = df[
-        (df["feature_nums"] == "baseline") & (df["tuned"] == (1 if tuned else 0))
+        (df["feature_num"] == "baseline") & (df["tuned"] == (1 if tuned else 0))
     ]
+
     rows = []
     for _, (model_key, model_label, _) in MODEL_KEYS.items():
         row = filtered[filtered["model"] == model_key]
         if not row.empty:
             score = row.iloc[0][score_column(mode)]
-            row_data = [model_label, model_key, round(score, 5)]
+            row_data = {
+                "model": model_label,
+                "model_key": model_key,
+                "feature_num": "baseline",
+                score_column(mode): round(score, 5),
+                "tuned": 1 if tuned else 0,
+            }
             if tuned and "params" in row.columns:
-                row_data.append(row.iloc[0].get("params", ""))
+                row_data["params"] = row.iloc[0].get("params", "")
             rows.append(row_data)
-        else:
-            rows.append([model_label, model_key, "Not found"])
-    columns = [
-        "Model",
-        "Key",
-        f"{'Tuned' if tuned else 'Untuned'} Baseline {mode.title()} Score",
-    ]
-    if tuned and "params" in df.columns:
-        columns.append("params")
-    return pd.DataFrame(rows, columns=columns)
+    return pd.DataFrame(rows)
 
 
 def score_column(mode):
@@ -322,8 +321,18 @@ def show_combinations(
         print("⚠️ No matching rows found.")
         return
     df = pd.DataFrame(rows)
+    df["model"] = model_label
+    df["model_key"] = model_key
     df.insert(0, "rank", range(1, len(df) + 1))
-    cols = ["rank", "feature_nums", score_column(mode), "improvement", "tuned"]
+    cols = [
+        "rank",
+        "model",
+        "model_key",
+        "feature_num",
+        score_column(mode),
+        "improvement",
+        "tuned",
+    ]
     if tuned and "params" in df.columns:
         cols.append("params")
     df = df[cols]
@@ -379,12 +388,25 @@ def stats_menu():
                     model_key, [combo], tuned=False, mode=mode
                 )
                 if result:
-                    rows.append(result[0])
+                    row = result[0]
+                    row["model"] = model_label
+                    row["model_key"] = model_key
+                    row["tuned"] = int(row.get("tuned", 0))
+                    rows.append(row)
+
             if rows:
                 df = pd.DataFrame(rows)
                 df.insert(0, "rank", range(1, len(df) + 1))
                 df = df[
-                    ["rank", "feature_nums", score_column(mode), "improvement", "tuned"]
+                    [
+                        "rank",
+                        "model",
+                        "model_key",
+                        "feature_num",
+                        score_column(mode),
+                        "improvement",
+                        "tuned",
+                    ]
                 ]
                 display_table(
                     df,
@@ -424,12 +446,18 @@ def stats_menu():
             model_key, model_label, model_index = select_model()
             if model_key:
                 df = extract_single_feature_scores(
-                    model_key, model_index, tuned=False, mode=mode
+                    model_key,
+                    model_index,
+                    tuned=False,
+                    mode=mode,
+                    model_label=model_label,
                 )
                 if df is not None:
                     cols = [
                         "rank",
-                        "feature_nums",
+                        "model",
+                        "model_key",
+                        "feature_num",
                         score_column(mode),
                         "improvement",
                         "tuned",
@@ -454,12 +482,16 @@ def stats_menu():
             model_key, model_label, model_index = select_model()
             if model_key:
                 df = extract_single_feature_scores(
-                    model_key, model_index, tuned=True, mode=mode
+                    model_key,
+                    model_index,
+                    tuned=True,
+                    mode=mode,
+                    model_label=model_label,
                 )
                 if df is not None:
                     cols = [
                         "rank",
-                        "feature_nums",
+                        "feature_num",
                         score_column(mode),
                         "improvement",
                         "tuned",
@@ -515,11 +547,15 @@ def stats_menu():
                 rows = []
                 for k, (model_key, model_label, model_index) in MODEL_KEYS.items():
                     df = extract_single_feature_scores(
-                        model_key, model_index, tuned=tuned, mode=mode
+                        model_key,
+                        model_index,
+                        tuned=tuned,
+                        mode=mode,
+                        model_label=model_label,
                     )
                     if df is not None:
-                        df["feature_nums"] = df["feature_nums"].astype(str).str.strip()
-                        match = df[df["feature_nums"] == str(feature_num)]
+                        df["feature_num"] = df["feature_num"].astype(str).str.strip()
+                        match = df[df["feature_num"] == str(feature_num)]
                         if not match.empty:
                             row = match.iloc[0]
                             row_data = {
@@ -562,7 +598,7 @@ def run_menu_choice(choice, mode):
                 df = pd.DataFrame(rows)
                 df.insert(0, "rank", 1)
                 df = df[
-                    ["rank", "feature_nums", score_column(mode), "improvement", "tuned"]
+                    ["rank", "feature_num", score_column(mode), "improvement", "tuned"]
                 ]
                 display_table(
                     df,
@@ -595,12 +631,16 @@ def run_menu_choice(choice, mode):
 
             elif choice in ["4", "6"]:
                 df = extract_single_feature_scores(
-                    model_key, model_index, tuned=tuned, mode=mode
+                    model_key,
+                    model_index,
+                    tuned=tuned,
+                    mode=mode,
+                    model_label=model_label,
                 )
                 if df is not None:
                     cols = [
                         "rank",
-                        "feature_nums",
+                        "feature_num",
                         score_column(mode),
                         "improvement",
                         "tuned",
@@ -650,11 +690,15 @@ def run_menu_choice(choice, mode):
             rows = []
             for _, (model_key, model_label, model_index) in MODEL_KEYS.items():
                 df = extract_single_feature_scores(
-                    model_key, model_index, tuned=tuned, mode=mode
+                    model_key,
+                    model_index,
+                    tuned=tuned,
+                    mode=mode,
+                    model_label=model_label,
                 )
                 if df is not None:
-                    df["feature_nums"] = df["feature_nums"].astype(str).str.strip()
-                    match = df[df["feature_nums"] == str(feature_num)]
+                    df["feature_num"] = df["feature_num"].astype(str).str.strip()
+                    match = df[df["feature_num"] == str(feature_num)]
                     if not match.empty:
                         row = match.iloc[0]
                         row_data = {
