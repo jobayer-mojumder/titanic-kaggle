@@ -38,6 +38,8 @@ def select_model():
 
 
 def calculate_partial_eta_squared(df):
+    print("\n🔎 Starting ηp² calculation...")
+
     df = df.copy()
     df["feature_nums"] = df["feature_nums"].astype(str)
     df["tuned"] = df["tuned"].astype(int)
@@ -65,62 +67,57 @@ def calculate_partial_eta_squared(df):
         lambda s: np.array(ast.literal_eval(s)) if isinstance(s, str) else np.array([])
     )
 
-    valid_df = df[
+    df = df[
         (df["cv_scores"].apply(len) > 1) & (df["cv_scores_baseline"].apply(len) > 1)
     ]
-    if valid_df.empty:
-        print("❌ No valid rows for ηp² calculation.")
+
+    if df.empty:
+        print("❌ No rows with both feature and baseline CV scores.")
         return pd.DataFrame()
 
     all_scores = np.concatenate(
-        valid_df["cv_scores"].tolist() + valid_df["cv_scores_baseline"].tolist()
+        df["cv_scores"].tolist() + df["cv_scores_baseline"].tolist()
     )
     grand_mean = np.mean(all_scores)
 
     results = []
-    for _, row in valid_df.iterrows():
-        for group, scores in [
-            ("baseline", row["cv_scores_baseline"]),
-            (row["feature_nums"], row["cv_scores"]),
-        ]:
-            group_mean = np.mean(scores)
-            ss_effect = len(scores) * (group_mean - grand_mean) ** 2
-            ss_error = np.sum((scores - group_mean) ** 2)
-            eta_p2 = (
-                ss_effect / (ss_effect + ss_error) if (ss_effect + ss_error) != 0 else 0
-            )
-            results.append(
-                {
-                    "model": row["model"],
-                    "tuned": row["tuned"],
-                    "feature_nums": group,
-                    "mean_cv": round(group_mean, 5),
-                    "eta_p2": round(eta_p2, 4),
-                }
-            )
+    for _, row in df.iterrows():
+        scores = row["cv_scores"]
+        group_mean = np.mean(scores)
+        ss_effect = len(scores) * (group_mean - grand_mean) ** 2
+        ss_error = np.sum((scores - group_mean) ** 2)
+        eta_p2 = (
+            ss_effect / (ss_effect + ss_error) if (ss_effect + ss_error) != 0 else 0
+        )
+        results.append(
+            {
+                "model": row["model"],
+                "tuned": row["tuned"],
+                "feature_nums": row["feature_nums"],
+                "local_accuracy": round(group_mean, 5),
+                "mean_cv": round(group_mean, 5),
+                "eta_p2": round(eta_p2, 4),
+            }
+        )
 
-    return pd.DataFrame(results)
+    result_df = pd.DataFrame(results)
+    return result_df
 
 
 def save_performance_data(df, file_name):
-    print("\n📁 Saving performance data...")
+    print("\n📊 Calculating Partial Eta Squared...")
 
     input_file = os.path.join("results", "summary_local.csv")
-    if not os.path.exists(input_file):
-        print(f"⚠️ Input file not found: {input_file}")
-        return
-
-    if os.stat(input_file).st_size == 0:
-        print(f"⚠️ File is empty: {input_file}")
-        return
+    if not os.path.exists(input_file) or os.stat(input_file).st_size == 0:
+        print(f"⚠️ summary_local.csv missing or empty.")
+        return pd.DataFrame()
 
     summary_df = pd.read_csv(input_file)
 
+    model_name_map = {v[1]: v[0] for v in MODEL_KEYS.values()}
     df = df.rename(columns={"feature_num": "feature_nums"})
     df["feature_nums"] = df["feature_nums"].astype(str)
     df["tuned"] = df["tuned"].astype(int)
-
-    model_name_map = {v[1]: v[0] for v in MODEL_KEYS.values()}
     df["model"] = df["model"].replace(model_name_map)
 
     summary_df["feature_nums"] = summary_df["feature_nums"].astype(str)
@@ -132,47 +129,106 @@ def save_performance_data(df, file_name):
         how="left",
     )
 
-    missing = merged["cv_scores"].isnull().sum()
-    if missing > 0:
-        print(f"⚠️ {missing} rows did not match and were dropped.")
-        unmatched = df.merge(
-            summary_df[["model", "tuned", "feature_nums"]],
-            on=["model", "tuned", "feature_nums"],
-            how="left",
-            indicator=True,
-        ).query('_merge == "left_only"')
-        print("🔍 Unmatched rows:")
-        print(unmatched[["model", "tuned", "feature_nums"]])
-
     merged = merged.dropna(subset=["cv_scores"])
     if merged.empty:
-        print("❌ No valid data to calculate Partial Eta Squared. Skipping.")
-        return
+        print("❌ No valid rows for ηp² calculation.")
+        return pd.DataFrame()
 
     result_df = calculate_partial_eta_squared(merged)
 
-    os.makedirs("stats/performance", exist_ok=True)
-    output_path = os.path.join("stats", "performance", file_name)
-    result_df.to_csv(output_path, index=False)
-
-    print(f"✅ Partial Eta Squared results saved to: {output_path}")
+    return result_df
 
 
 def display_table(df, title, file_name, mode):
+    import pandas as pd
+    import os
+
     os.system("cls" if os.name == "nt" else "clear")
     if df.empty:
         print("⚠️ No data found.")
         return
+
     print(f"\n📊 {title}")
-    print(tabulate(df, headers="keys", tablefmt="fancy_grid", showindex=False))
+
+    eta_df = save_performance_data(df.copy(), file_name)
+
+    if eta_df is None:
+        eta_df = pd.DataFrame()
+
+    print("\n📈 ηp² Summary:")
+    print(
+        tabulate(eta_df, headers="keys", tablefmt="fancy_grid")
+        if not eta_df.empty
+        else "⚠️ ηp² DataFrame is empty or None"
+    )
+
+    if not eta_df.empty and isinstance(eta_df, pd.DataFrame):
+        eta_df = eta_df.rename(columns={"feature_nums": "feature_num"})
+        eta_df["feature_num"] = eta_df["feature_num"].astype(str)
+        eta_df["model_key"] = eta_df["model"].astype(str)
+
+        df["feature_num"] = df["feature_num"].astype(str)
+        df["model_key"] = df["model_key"].astype(str)
+
+        print("\n🔄 Attempting merge with columns:", eta_df.columns.tolist())
+
+        df = df.merge(
+            eta_df[
+                [
+                    "model_key",
+                    "tuned",
+                    "feature_num",
+                    "local_accuracy",
+                    "mean_cv",
+                    "eta_p2",
+                ]
+            ],
+            on=["model_key", "tuned", "feature_num"],
+            how="left",
+        )
+
+        def interpret_eta(eta):
+            if pd.isna(eta):
+                return "-"
+            elif eta < 0.01:
+                return "negligible"
+            elif eta < 0.06:
+                return "small"
+            elif eta < 0.14:
+                return "medium"
+            else:
+                return "large"
+
+        df["Effect Size"] = df["eta_p2"].apply(interpret_eta)
+
+        cols_to_show = [
+            "model",
+            "model_key",
+            "tuned",
+            "feature_num",
+            "kaggle_score",
+            "improvement",
+            "local_accuracy",
+            "mean_cv",
+            "eta_p2",
+            "Effect Size",
+            "params",
+        ]
+        for col in cols_to_show:
+            if col not in df.columns:
+                df[col] = None
+
+        df = df[cols_to_show]
+    else:
+        print("⚠️ No ηp² data available for merge.")
+
+    print("\n✅ Preview:")
+    print(tabulate(df, headers="keys", tablefmt="fancy_grid"))
 
     out_dir = os.path.join("stats", mode)
     os.makedirs(out_dir, exist_ok=True)
     output_path = os.path.join(out_dir, file_name)
     df.to_csv(output_path, index=False)
-
-    if mode != "kaggle":
-        save_performance_data(df, file_name)
 
     print(f"\n📁 Data saved to {output_path}")
     input("Press Enter to continue...")
@@ -304,7 +360,7 @@ def print_menu(mode):
 
 def stats_menu():
     global mode
-    mode = "local"
+    mode = "kaggle"
     while True:
         print_menu(mode)
         choice = input("Choose an option: ").strip()
