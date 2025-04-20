@@ -11,4 +11,4 @@ def evaluate_model(model, X, y, cv=5, model_name=""):
 
     print(f"📈 CV Accuracy: \033[93m{acc}\033[0m ± {std:.5f}")
 
-    return acc, std
+    return acc, std, scores

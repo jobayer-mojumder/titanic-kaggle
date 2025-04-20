@@ -43,7 +43,10 @@ def run_model(model_key, feature_nums, tune=False):
     model.fit(X_train, y)
     preds = model.predict(X_test)
 
-    acc, std = evaluate_model(model, X_train, y, model_name=model_key)
+    acc, std, cv_scores = evaluate_model(model, X_train, y, model_name=model_key)
+
+    print(f"📊 CV Scores: {cv_scores}")
+
     out_file = get_submission_path(model_key, feature_nums)
     pd.DataFrame({"PassengerId": test["PassengerId"], "Survived": preds}).to_csv(
         out_file, index=False
@@ -58,6 +61,7 @@ def run_model(model_key, feature_nums, tune=False):
         tuned=tune,
         params=best_params,
         std=std,
+        cv_scores=cv_scores,
     )
 
 

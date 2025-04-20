@@ -119,8 +119,8 @@ def update_summary_csv(mode, row):
 
     summary_row = {
         "model": row.get("model"),
-        "feature_nums": row.get("feature_nums", "baseline"),
         "tuned": row.get("tuned", 0),
+        "feature_nums": row.get("feature_nums", "baseline"),
         "tuning_params": row.get("params", None),
         "improvement": row.get("improvement"),
         "baseline": row.get("baseline"),
@@ -129,18 +129,20 @@ def update_summary_csv(mode, row):
     if mode == "local":
         summary_row["accuracy"] = row.get("accuracy")
         summary_row["cv_std"] = row.get("std")
+        summary_row["cv_scores"] = row.get("cv_scores")
     else:
         summary_row["kaggle_score"] = row.get("kaggle_score")
 
     column_order = [
         "model",
+        "tuned",
         "feature_nums",
         "baseline",
         "accuracy" if mode == "local" else "kaggle_score",
         "improvement",
         "cv_std" if mode == "local" else None,
-        "tuned",
         "tuning_params",
+        "cv_scores" if mode == "local" else None,
     ]
     column_order = [col for col in column_order if col is not None]
     summary_row = {col: summary_row.get(col) for col in column_order}
@@ -163,6 +165,7 @@ def log_results(
     tuned=False,
     params=None,
     std=None,
+    cv_scores=None,
 ):
     feature_list = sorted(normalize_feature_list(feature_list))
     feature_str = ", ".join(map(str, feature_list)) if feature_list else "baseline"
@@ -170,13 +173,14 @@ def log_results(
 
     row = {
         "model": model_name,
+        "tuned": 1 if tuned else 0,
         "feature_nums": feature_str,
         "baseline": BASELINE_SCORE.get(model_name, 0),
         "accuracy": truncate_float(accuracy),
         "std": truncate_float(std) if std is not None else None,
         "improvement": truncate_float(improvement),
-        "tuned": 1 if tuned else 0,
         "params": str(params) if params else None,
+        "cv_scores": str(cv_scores) if cv_scores is not None else None,
     }
 
     update_summary_csv("local", row)
