@@ -379,8 +379,6 @@ def stats_menu():
             mode = choose_mode()
             continue
         elif choice == "1":
-            from modules.analysis import get_best_single_feature_combination
-
             rows = []
             for _, (model_key, model_label, model_index) in MODEL_KEYS.items():
                 combo = get_best_single_feature_combination(model_key, mode=mode)
@@ -491,6 +489,8 @@ def stats_menu():
                 if df is not None:
                     cols = [
                         "rank",
+                        "model",
+                        "model_key",
                         "feature_num",
                         score_column(mode),
                         "improvement",
@@ -594,11 +594,23 @@ def run_menu_choice(choice, mode):
         for _, (model_key, model_label, model_index) in MODEL_KEYS.items():
             combo = get_best_single_feature_combination(model_key, mode=mode)
             rows = extract_rows_for_combos(model_key, [combo], tuned=False, mode=mode)
+
             if rows:
                 df = pd.DataFrame(rows)
                 df.insert(0, "rank", 1)
+                df["model"] = model_label
+                df["model_key"] = model_key
+
                 df = df[
-                    ["rank", "feature_num", score_column(mode), "improvement", "tuned"]
+                    [
+                        "rank",
+                        "model",
+                        "model_key",
+                        "feature_num",
+                        score_column(mode),
+                        "improvement",
+                        "tuned",
+                    ]
                 ]
                 display_table(
                     df,
@@ -640,6 +652,8 @@ def run_menu_choice(choice, mode):
                 if df is not None:
                     cols = [
                         "rank",
+                        "model",
+                        "model_key",
                         "feature_num",
                         score_column(mode),
                         "improvement",
