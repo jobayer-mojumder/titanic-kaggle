@@ -99,7 +99,6 @@ def calculate_partial_eta_squared(df):
                 "tuned": row["tuned"],
                 "feature_num": row["feature_num"],
                 "local_accuracy": round(group_mean, 5),
-                "mean_cv": round(group_mean, 5),
                 "eta_p2": round(eta_p2, 4),
             }
         )
@@ -176,7 +175,6 @@ def display_table(df, title, file_name, mode):
                     "tuned",
                     "feature_num",
                     "local_accuracy",
-                    "mean_cv",
                     "eta_p2",
                 ]
             ],
@@ -205,7 +203,6 @@ def display_table(df, title, file_name, mode):
             "kaggle_score",
             "improvement",
             "local_accuracy",
-            "mean_cv",
             "eta_p2",
             "Effect Size",
             "params",
@@ -359,6 +356,8 @@ def print_menu(mode):
     print("\n📊")
     print("     [11] Separate single feature summary for all models (Untuned)")
     print("     [12] Separate single feature summary for all models (Tuned)")
+    print("     [13] All 11 single features across models (Untuned)")
+    print("     [14] All 11 single features across models (Tuned)")
     print("\n🧪 Utility")
     print("     [99] Run all reports for all models")
     print("\n⚙️ Settings")
@@ -580,6 +579,31 @@ def stats_menu():
                         filename,
                         os.path.join(mode, "single"),
                     )
+        elif choice in ["13", "14"]:
+            tuned = choice == "14"
+            from modules.combination import ALL_FEATURE_COMBINATION
+
+            all_feature_str = ", ".join(map(str, sorted(ALL_FEATURE_COMBINATION)))
+            rows = []
+            for _, (model_key, model_label, model_index) in MODEL_KEYS.items():
+                rows_data = extract_rows_for_combos(
+                    model_key, [ALL_FEATURE_COMBINATION], tuned=tuned, mode=mode
+                )
+                if rows_data:
+                    row = rows_data[0]
+                    row["model"] = model_label
+                    row["model_key"] = model_key
+                    row["feature_num"] = all_feature_str
+                    row["tuned"] = 1 if tuned else 0
+                    rows.append(row)
+
+            if rows:
+                df = pd.DataFrame(rows)
+                df.insert(0, "rank", range(1, len(df) + 1))
+                title = f"All 11 Features as One Combination ({'Tuned' if tuned else 'Untuned'})"
+                filename = f"all_features_combined_{mode}{'_tuned' if tuned else '_untuned'}.csv"
+                display_table(df, title, filename, mode)
+
         elif choice == "99":
             print("🧪 Running all 12 reports for all models...\n")
             for auto_choice in [str(i) for i in range(1, 13)]:
