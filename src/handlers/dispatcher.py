@@ -31,9 +31,7 @@ def handle_choice(choice, run_model):
         return route("Baseline models", run_baseline_models, False)
     elif choice == "2":
         return route(
-            "Single features (FE) for all models",
-            run_all_single_features,
-            False,
+            "Single features (FE) for all models", run_all_single_features, False
         )
     elif choice == "3":
         return route(
@@ -51,9 +49,7 @@ def handle_choice(choice, run_model):
         return route("Baseline models", run_baseline_models, True)
     elif choice == "6":
         return route(
-            "Single features (MT) for all models",
-            run_all_single_features,
-            True,
+            "Single features (MT) for all models", run_all_single_features, True
         )
     elif choice == "7":
         return route(
@@ -77,6 +73,12 @@ def handle_choice(choice, run_model):
         return route(
             "10 Best FE combinations (MT) for all models",
             run_10_best_feature_combinations,
+            True,
+        )
+    elif choice == "11":
+        return route(
+            "General combinations (MT) for all models",
+            run_all_general_combinations,
             True,
         )
     else:
@@ -110,5 +112,6 @@ def print_menu(last_activity=None, last_duration=None):
     print("│ 8. Best single FE combinations (MT)      │")
     print("│ 9. 10 Balanced FE combinations (MT)      │")
     print("│ 10. 10 Best FE combinations (MT)         │")
+    print("│ 11. General combinations (MT)            │")
     print("└──────────────────────────────────────────┘")
     print("\n0. Exit\n")

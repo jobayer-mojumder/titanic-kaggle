@@ -4,50 +4,52 @@ from modules.constant import DEFAULT_MODELS
 PARAM_GRIDS = {
     "dt": {
         "criterion": ["gini", "entropy"],
-        "max_depth": [2, 3, 4, 5],
-        "min_samples_split": [2, 5, 10],
-        "min_samples_leaf": [1, 2],
-        "class_weight": [None, "balanced"],
+        "splitter": ["best"],
+        "max_depth": [2, 3, 4],
+        "min_samples_split": [5, 10],
+        "min_samples_leaf": [2, 4],
     },
     "rf": {
         "n_estimators": [50, 100, 200],
-        "max_depth": [3, 5, 7],
-        "min_samples_split": [2, 5],
-        "min_samples_leaf": [1, 2],
-        "max_features": ["sqrt", "log2"],
-        "class_weight": [None, "balanced"],
+        "max_depth": [3, 4, 5],
+        "min_samples_split": [5, 10],
+        "min_samples_leaf": [2, 4],
+        "bootstrap": [True],
+        "max_features": ["sqrt"],
     },
     "xgb": {
         "n_estimators": [50, 100, 200],
-        "max_depth": [3, 4, 5],
+        "max_depth": [3, 4],
         "learning_rate": [0.05, 0.1],
-        "subsample": [0.8, 1.0],
-        "colsample_bytree": [0.8, 1.0],
-        "gamma": [0, 0.1],
-        "scale_pos_weight": [1, 2],
+        "min_child_weight": [3, 5],
+        "subsample": [0.8],
+        "colsample_bytree": [0.8],
+        "reg_alpha": [0.1],
+        "reg_lambda": [1],
     },
     "lgbm": {
         "n_estimators": [50, 100, 200],
+        "max_depth": [3, 4],
         "learning_rate": [0.05, 0.1],
-        "max_depth": [-1, 3, 5],
         "num_leaves": [15, 31],
-        "min_child_samples": [10, 20],
-        "subsample": [0.8, 1.0],
-        "colsample_bytree": [0.8, 1.0],
-        "scale_pos_weight": [1, 2],
+        "min_child_samples": [20, 30],
+        "subsample": [0.8],
+        "colsample_bytree": [0.8],
+        "reg_alpha": [0.1],
+        "reg_lambda": [1],
     },
     "cb": {
         "iterations": [50, 100, 200],
-        "depth": [3, 4, 5],
+        "depth": [3, 4],
         "learning_rate": [0.05, 0.1],
         "l2_leaf_reg": [3, 5],
-        "bootstrap_type": ["Bayesian"],
-        "scale_pos_weight": [1, 2],
+        "bagging_temperature": [0],
+        "random_strength": [1],
     },
 }
 
 
-def tune_model(X, y, model_key, cv=2, scoring="accuracy"):
+def tune_model(X, y, model_key, cv=3, scoring="accuracy"):
     from sklearn.model_selection import GridSearchCV, ParameterGrid
     from modules.constant import DEFAULT_MODELS
     import pandas as pd
