@@ -6,3 +6,4 @@ src/handlers/__pycache__
 src/results/*
 src/catboost_info
 src/stats/
+src/jasp_outputs/
