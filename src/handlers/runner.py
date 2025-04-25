@@ -59,8 +59,7 @@ def run_baseline_models(run_model_func, model_key, tune=False):
 
 
 def run_all_features_in_one_combination(run_model_func, model_key, tune=False):
-    from modules.combination import ALL_FEATURE_COMBINATION
-
+    ALL_FEATURE_COMBINATION = list(range(1, MAX_FEATURES_NUM + 1))
     finished_combos = set()
     if tune:
         finished_combos = load_finished_combinations(model_key)
