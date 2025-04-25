@@ -4,6 +4,8 @@ from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 from catboost import CatBoostClassifier
 
+MAX_FEATURES_NUM = 11
+
 DECISION_TREE_BASE_SCORE = 0.80920
 XGBOOST_BASE_SCORE = 0.82043
 RANDOM_FOREST_BASE_SCORE = 0.79136

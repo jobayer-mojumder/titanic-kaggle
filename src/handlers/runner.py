@@ -5,6 +5,8 @@ from modules.analysis import (
     get_10_best_feature_combinations,
     get_10_balanced_feature_combinations,
 )
+from modules.constant import MAX_FEATURES_NUM
+from itertools import combinations
 
 
 def load_finished_combinations(model_key):
@@ -18,18 +20,27 @@ def load_finished_combinations(model_key):
 
 
 def run_all_single_features(run_model_func, model_key, tune=False):
-    for feature_num in range(1, 12):
+    for feature_num in range(1, MAX_FEATURES_NUM + 1):
         run_model_func(model_key, [feature_num], tune=tune)
 
 
 def run_all_general_combinations(run_model_func, model_key, tune=False):
-    from modules.combination import GENERAL_FEATURE_COMBINATIONS
+
+    # Feature numbers from 1 to 11
+    feature_ids = list(range(1, MAX_FEATURES_NUM + 1))
+
+    # Generate all combinations (excluding empty set)
+    all_combinations = [
+        list(combo)
+        for r in range(1, len(feature_ids) + 1)
+        for combo in combinations(feature_ids, r)
+    ]
 
     finished_combos = set()
     if tune:
         finished_combos = load_finished_combinations(model_key)
 
-    for combo in GENERAL_FEATURE_COMBINATIONS:
+    for combo in all_combinations:
         feature_num_str = ", ".join(map(str, combo))
         if tune and feature_num_str in finished_combos:
             print(f"⏭️ {model_key} - Skipping already tuned combo: {feature_num_str}")

@@ -1,0 +1,17 @@
+model,group,score
+rf,baseline,0.69273743
+rf,baseline,0.79775281
+rf,baseline,0.85393258
+rf,baseline,0.78089888
+rf,baseline,0.83146067
+rf,feature_eng,0.7935
+rf,feature_eng,0.79244
+rf,feature_eng,0.79131
+rf,feature_eng,0.80813
+rf,feature_eng,0.78347
+rf,feature_eng,0.77335
+rf,feature_eng,0.79019
+rf,feature_eng,0.78571
+rf,feature_eng,0.81146
+rf,feature_eng,0.79579
+rf,feature_eng,0.82492

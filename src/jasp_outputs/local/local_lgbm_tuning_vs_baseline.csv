@@ -1,0 +1,6 @@
+model,group,score
+lgbm,baseline,0.79888268
+lgbm,baseline,0.81460674
+lgbm,baseline,0.85393258
+lgbm,baseline,0.81460674
+lgbm,baseline,0.83707865
