@@ -9,7 +9,7 @@ FEATURE_MAP = {
     2: "family_size",
     3: "is_alone",
     4: "age_group",
-    5: "fare_group",
+    5: "fare_per_person",
     6: "deck",
     7: "has_cabin",
     8: "ticket_prefix",
@@ -23,7 +23,7 @@ FEATURE_META = {
     "FamilySize": {"type": "numeric"},
     "IsAlone": {"type": "numeric"},
     "AgeGroup": {"type": "categorical"},
-    "FareGroup": {"type": "categorical"},
+    "FarePerPerson": {"type": "numeric"},
     "Deck": {"type": "categorical"},
     "HasCabin": {"type": "numeric"},
     "TicketPrefix": {"type": "categorical"},
@@ -36,13 +36,6 @@ FEATURE_META = {
 # Shared helper
 def compute_family_size(df):
     return df["SibSp"] + df["Parch"] + 1
-
-
-def extract_deck(cabin):
-    if pd.isna(cabin) or cabin == "":
-        return "U"  # Unknown
-    else:
-        return cabin[0]
 
 
 # Feature functions
@@ -70,15 +63,14 @@ def add_title(df):
 
 
 def add_family_size(df):
-    family_size = compute_family_size(df)
-    df["FamilySize"] = family_size
+    df["FamilySize"] = compute_family_size(df)
     scaler = StandardScaler()
     df["FamilySize"] = scaler.fit_transform(df[["FamilySize"]])  # Normalize FamilySize
     return df
 
 
 def add_is_alone(df):
-    df["IsAlone"] = (compute_family_size(df) == 1).astype(int)
+    df["IsAlone"] = (df["SibSp"] + df["Parch"] == 0).astype(int)
     return df
 
 
@@ -93,33 +85,22 @@ def add_age_group(df):
     return df
 
 
-def add_fare_group(df):
-    df["FarePerPerson"] = df["Fare"] / compute_family_size(df)
-    df["FareGroup"] = pd.cut(
-        df["FarePerPerson"],
-        bins=[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
-        labels=[
-            "VeryLow",
-            "Low",
-            "Medium",
-            "High",
-            "VeryHigh",
-            "UltraHigh",
-            "Luxury",
-            "UltraLuxury",
-            "SuperLuxury",
-            "MegaLuxury",
-        ],
-        right=True,
-        include_lowest=True,
-    )
-    drop_columns = ["FarePerPerson"]
-    df.drop(columns=drop_columns, inplace=True)
+def add_fare_per_person(df):
+    family_size = compute_family_size(df).clip(lower=1)  # avoid division by zero
+    fare_per_person = df["Fare"] / family_size
+    fare_per_person = fare_per_person.fillna(0)  # fill NaN with 0
+    df["FarePerPerson"] = fare_per_person.astype(int)  # safe to cast now
     return df
 
 
 def add_deck(df):
-    df["Deck"] = df["Cabin"].apply(extract_deck)
+    deck = {"A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6, "G": 7, "U": 8}
+    df["Cabin"] = df["Cabin"].fillna("U0")
+    df["Deck"] = df["Cabin"].map(lambda x: re.compile("([a-zA-Z]+)").search(x).group())
+    df["Deck"] = df["Deck"].map(deck)
+    df["Deck"] = df["Deck"].fillna(0)
+    df["Deck"] = df["Deck"].astype(int)
+
     return df
 
 
@@ -158,7 +139,7 @@ FEATURE_FUNCTIONS = {
     "family_size": add_family_size,
     "is_alone": add_is_alone,
     "age_group": add_age_group,
-    "fare_group": add_fare_group,
+    "fare_per_person": add_fare_per_person,
     "deck": add_deck,
     "has_cabin": add_has_cabin,
     "ticket_prefix": add_ticket_prefix,

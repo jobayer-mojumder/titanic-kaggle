@@ -43,7 +43,7 @@ def get_column_types(df, selected_features=None):
 def build_pipeline(numerical, categorical):
     return ColumnTransformer(
         transformers=[
-            ("num", SimpleImputer(strategy="median"), numerical),
+            ("num", SimpleImputer(strategy="mean"), numerical),
             (
                 "cat",
                 Pipeline(
