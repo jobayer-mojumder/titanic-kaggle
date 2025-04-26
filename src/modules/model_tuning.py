@@ -1,61 +1,50 @@
-from sklearn.model_selection import GridSearchCV, ParameterGrid
+from sklearn.model_selection import GridSearchCV, ParameterGrid, RandomizedSearchCV
 from modules.constant import DEFAULT_MODELS
+import pandas as pd
+import numpy as np
+import scipy.sparse as sp
 
 PARAM_GRIDS = {
     "dt": {
         "criterion": ["gini", "entropy"],
         "splitter": ["best"],
-        "max_depth": [2, 3, 4],
-        "min_samples_split": [5, 10],
-        "min_samples_leaf": [2, 4],
+        "max_depth": [2, 3, 5],
+        "min_samples_split": [2, 5, 10],
+        "min_samples_leaf": [1, 2, 4],
     },
     "rf": {
         "n_estimators": [50, 100, 200],
-        "max_depth": [3, 4, 5],
-        "min_samples_split": [5, 10],
-        "min_samples_leaf": [2, 4],
+        "max_depth": [2, 3, 5],
+        "min_samples_split": [2, 5, 10],
+        "min_samples_leaf": [1, 2, 4],
         "bootstrap": [True],
-        "max_features": ["sqrt"],
     },
     "xgb": {
         "n_estimators": [50, 100, 200],
-        "max_depth": [3, 4],
-        "learning_rate": [0.05, 0.1],
-        "min_child_weight": [3, 5],
-        "subsample": [0.8],
-        "colsample_bytree": [0.8],
-        "reg_alpha": [0.1],
-        "reg_lambda": [1],
+        "max_depth": [2, 3, 5],
+        "learning_rate": [0.01, 0.05, 0.1, 0.2],
+        "subsample": [0.6, 0.8, 1.0],
+        "colsample_bytree": [0.6, 0.8, 1.0],
     },
     "lgbm": {
         "n_estimators": [50, 100, 200],
-        "max_depth": [3, 4],
-        "learning_rate": [0.05, 0.1],
-        "num_leaves": [15, 31],
-        "min_child_samples": [20, 30],
-        "subsample": [0.8],
-        "colsample_bytree": [0.8],
-        "reg_alpha": [0.1],
-        "reg_lambda": [1],
+        "max_depth": [2, 3, 5],
+        "learning_rate": [0.01, 0.05, 0.1, 0.2],
+        "num_leaves": [7, 15, 31],
+        "subsample": [0.6, 0.8, 1.0],
+        "colsample_bytree": [0.6, 0.8, 1.0],
     },
     "cb": {
         "iterations": [50, 100, 200],
-        "depth": [3, 4],
-        "learning_rate": [0.05, 0.1],
-        "l2_leaf_reg": [3, 5],
-        "bagging_temperature": [0],
-        "random_strength": [1],
+        "depth": [2, 3, 5],
+        "learning_rate": [0.01, 0.05, 0.1, 0.2],
+        "l2_leaf_reg": [1, 3, 5],
+        "border_count": [32, 64, 128],
     },
 }
 
 
 def tune_model(X, y, model_key, cv=3, scoring="accuracy"):
-    from sklearn.model_selection import GridSearchCV, ParameterGrid
-    from modules.constant import DEFAULT_MODELS
-    import pandas as pd
-    import numpy as np
-    import scipy.sparse as sp
-
     print(f"🔍 Tuning model: {model_key.upper()}")
 
     def ensure_numeric_features(X):
@@ -82,7 +71,6 @@ def tune_model(X, y, model_key, cv=3, scoring="accuracy"):
     param_grid = {k: v if isinstance(v, list) else [v] for k, v in raw_grid.items()}
     all_combos = list(ParameterGrid(param_grid))
 
-    # 🧠 Klingert filtering logic
     filtered = []
     for combo in all_combos:
         max_depth = combo.get("max_depth")
@@ -112,7 +100,8 @@ def tune_model(X, y, model_key, cv=3, scoring="accuracy"):
     )
 
     X = ensure_numeric_features(X)
-    grid = GridSearchCV(
+
+    search = GridSearchCV(
         estimator=model,
         param_grid=filtered_param_grid,
         cv=cv,
@@ -121,9 +110,20 @@ def tune_model(X, y, model_key, cv=3, scoring="accuracy"):
         n_jobs=-1,
     )
 
-    grid.fit(X, y)
+    # search = RandomizedSearchCV(
+    #     estimator=model,
+    #     param_distributions=filtered_param_grid,
+    #     n_iter=25,
+    #     cv=3,
+    #     scoring="accuracy",
+    #     random_state=42,
+    #     verbose=1,
+    #     n_jobs=-1,
+    # )
 
-    print(f"✅ Best params: {grid.best_params_}")
-    print(f"📈 Best score: {grid.best_score_:.5f}")
+    search.fit(X, y)
 
-    return grid.best_estimator_, grid.best_params_
+    print(f"✅ Best params: {search.best_params_}")
+    print(f"📈 Best score: {search.best_score_:.5f}")
+
+    return search.best_estimator_, search.best_params_

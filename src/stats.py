@@ -581,8 +581,7 @@ def stats_menu():
                     )
         elif choice in ["13", "14"]:
             tuned = choice == "14"
-            from modules.combination import ALL_FEATURE_COMBINATION
-
+            ALL_FEATURE_COMBINATION = [list(range(1, 12))]
             all_feature_str = ", ".join(map(str, sorted(ALL_FEATURE_COMBINATION)))
             rows = []
             for _, (model_key, model_label, model_index) in MODEL_KEYS.items():

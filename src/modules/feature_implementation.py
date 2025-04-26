@@ -65,7 +65,7 @@ def add_title(df):
 def add_family_size(df):
     df["FamilySize"] = compute_family_size(df)
     scaler = StandardScaler()
-    df["FamilySize"] = scaler.fit_transform(df[["FamilySize"]])  # Normalize FamilySize
+    df["FamilySize"] = scaler.fit_transform(df[["FamilySize"]])
     return df
 
 
