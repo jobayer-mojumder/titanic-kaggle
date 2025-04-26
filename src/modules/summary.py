@@ -169,6 +169,12 @@ def log_results(
 ):
     feature_list = sorted(normalize_feature_list(feature_list))
     feature_str = ", ".join(map(str, feature_list)) if feature_list else "baseline"
+
+    if model_name in BASELINE_SCORE:
+        compare_with_baseline(
+            accuracy, BASELINE_SCORE[model_name], label="Local Accuracy"
+        )
+
     improvement = accuracy - BASELINE_SCORE.get(model_name, 0)
 
     row = {

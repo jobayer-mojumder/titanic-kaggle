@@ -44,7 +44,7 @@ PARAM_GRIDS = {
 }
 
 
-def tune_model(X, y, model_key, cv=3, scoring="accuracy"):
+def tune_model(X, y, model_key, cv=10, scoring="accuracy"):
     print(f"🔍 Tuning model: {model_key.upper()}")
 
     def ensure_numeric_features(X):
@@ -123,7 +123,6 @@ def tune_model(X, y, model_key, cv=3, scoring="accuracy"):
 
     search.fit(X, y)
 
-    print(f"✅ Best params: {search.best_params_}")
     print(f"📈 Best score: {search.best_score_:.5f}")
 
     return search.best_estimator_, search.best_params_

@@ -4,7 +4,7 @@ from modules.constant import BASELINE_SCORE
 from modules.summary import compare_with_baseline
 
 
-def evaluate_model(model, X, y, cv=5, model_name=""):
+def evaluate_model(model, X, y, cv=10, model_name=""):
     scores = cross_val_score(model, X, y, cv=cv, scoring="accuracy")
 
     acc = round(scores.mean(), 5)

@@ -45,8 +45,6 @@ def run_model(model_key, feature_num, tune=False):
 
     acc, std, cv_scores = evaluate_model(model, X_train, y, model_name=model_key)
 
-    print(f"📊 CV Scores: {cv_scores}")
-
     out_file = get_submission_path(model_key, feature_num)
     pd.DataFrame({"PassengerId": test["PassengerId"], "Survived": preds}).to_csv(
         out_file, index=False
