@@ -1,47 +1,8 @@
 from sklearn.model_selection import GridSearchCV, ParameterGrid, RandomizedSearchCV
-from modules.constant import DEFAULT_MODELS
+from modules.constant import DEFAULT_MODELS, PARAM_GRIDS
 import pandas as pd
 import numpy as np
 import scipy.sparse as sp
-
-PARAM_GRIDS = {
-    "dt": {
-        "criterion": ["gini", "entropy"],
-        "splitter": ["best"],
-        "max_depth": [2, 3, 5],
-        "min_samples_split": [2, 5, 10],
-        "min_samples_leaf": [1, 2, 4],
-    },
-    "rf": {
-        "n_estimators": [50, 100, 200],
-        "max_depth": [2, 3, 5],
-        "min_samples_split": [2, 5, 10],
-        "min_samples_leaf": [1, 2, 4],
-        "bootstrap": [True],
-    },
-    "xgb": {
-        "n_estimators": [50, 100, 200],
-        "max_depth": [2, 3, 5],
-        "learning_rate": [0.01, 0.05, 0.1, 0.2],
-        "subsample": [0.6, 0.8, 1.0],
-        "colsample_bytree": [0.6, 0.8, 1.0],
-    },
-    "lgbm": {
-        "n_estimators": [50, 100, 200],
-        "max_depth": [2, 3, 5],
-        "learning_rate": [0.01, 0.05, 0.1, 0.2],
-        "num_leaves": [7, 15, 31],
-        "subsample": [0.6, 0.8, 1.0],
-        "colsample_bytree": [0.6, 0.8, 1.0],
-    },
-    "cb": {
-        "iterations": [50, 100, 200],
-        "depth": [2, 3, 5],
-        "learning_rate": [0.01, 0.05, 0.1, 0.2],
-        "l2_leaf_reg": [1, 3, 5],
-        "border_count": [32, 64, 128],
-    },
-}
 
 
 def tune_model(X, y, model_key, cv=10, scoring="accuracy"):

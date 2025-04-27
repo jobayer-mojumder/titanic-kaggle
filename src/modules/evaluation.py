@@ -1,12 +1,12 @@
 # type: ignore
 from sklearn.model_selection import cross_val_score
-from modules.constant import BASELINE_SCORE
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import RepeatedStratifiedKFold, cross_val_score
 
 
-def evaluate_model(model, X, y, cv=10, model_name=""):
-
-    skf = StratifiedKFold(n_splits=cv, shuffle=True, random_state=42)
+def evaluate_model(model, X, y, cv=10, repeats=2, model_name="", random_state=42):
+    skf = RepeatedStratifiedKFold(
+        n_splits=cv, n_repeats=repeats, random_state=random_state
+    )
 
     scores = cross_val_score(model, X, y, cv=skf, scoring="accuracy")
 

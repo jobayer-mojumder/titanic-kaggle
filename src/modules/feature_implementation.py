@@ -10,11 +10,12 @@ FEATURE_MAP = {
     3: "is_alone",
     4: "age_group",
     5: "fare_per_person",
-    6: "is_mother",
-    7: "has_cabin",
-    8: "sex_pclass",
-    9: "is_child",
-    10: "women_children_first",
+    6: "has_cabin",
+    7: "sex_pclass",
+    8: "is_child",
+    9: "women_children_first",
+    10: "deck",
+    11: "ticket_prefix",
 }
 
 FEATURE_META = {
@@ -23,11 +24,13 @@ FEATURE_META = {
     "IsAlone": {"type": "numeric"},
     "AgeGroup": {"type": "categorical"},
     "FarePerPerson": {"type": "numeric"},
+    "Deck": {"type": "categorical"},
     "IsMother": {"type": "numeric"},
     "HasCabin": {"type": "numeric"},
     "SexPclass": {"type": "numeric"},
     "IsChild": {"type": "numeric"},
     "WomenChildrenFirst": {"type": "numeric"},
+    "TicketPrefix": {"type": "categorical"},
 }
 
 
@@ -91,16 +94,13 @@ def add_fare_per_person(df):
     return df
 
 
-# def add_deck(df):
-#     deck = {"A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6, "G": 7, "U": 8}
-#     cabin = df["Cabin"]
-#     cabin = cabin.fillna("U0")
-#     df["Deck"] = cabin.map(lambda x: re.compile("([a-zA-Z]+)").search(x).group())
-#     df["Deck"] = df["Deck"].map(deck)
-#     df["Deck"] = df["Deck"].fillna(0)
-#     df["Deck"] = df["Deck"].astype(int)
-
-#     return df
+def add_deck(df):
+    deck_map = {"A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6, "G": 7, "U": 8}
+    df["Deck"] = (
+        df["Cabin"].fillna("U0").map(lambda x: re.search(r"([A-Za-z]+)", x).group())
+    )
+    df["Deck"] = df["Deck"].map(deck_map).fillna(0).astype(int)
+    return df
 
 
 def add_is_mother(df):
@@ -151,10 +151,12 @@ FEATURE_FUNCTIONS = {
     "is_alone": add_is_alone,
     "age_group": add_age_group,
     "fare_per_person": add_fare_per_person,
+    "deck": add_deck,
     "is_mother": add_is_mother,
     "has_cabin": add_has_cabin,
     "ticket_prefix": add_ticket_prefix,
     "sex_pclass": add_sex_pclass,
     "is_child": add_is_child,
     "women_children_first": add_women_children_first,
+    "ticket_prefix": add_ticket_prefix,
 }
