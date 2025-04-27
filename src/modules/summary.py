@@ -278,3 +278,48 @@ def get_submission_path(model_key, feature_num):
     os.makedirs(out_dir, exist_ok=True)
     filename = f"submission_{model_key}_{suffix}.csv"
     return os.path.join(out_dir, filename)
+
+
+def save_feature_importance(model, preproc, model_key, feature_num, tuned=False):
+    if not hasattr(model, "feature_importances_"):
+        print("⚠️ Model does not support feature_importances_. Skipping.")
+        return
+
+    # Get feature names
+    try:
+        feature_names = preproc.get_feature_names_out()
+    except AttributeError:
+        feature_names = [
+            f"feature_{i}" for i in range(model.feature_importances_.shape[0])
+        ]
+
+    importance = model.feature_importances_
+
+    df = pd.DataFrame(
+        {
+            "model_key": model_key,
+            "feature_num": (
+                ", ".join(map(str, sorted(feature_num))) if feature_num else "baseline"
+            ),
+            "tuned": int(tuned),
+            "feature": feature_names,
+            "importance": importance,
+        }
+    )
+
+    # Sort by importance
+    df = df.sort_values(by="importance", ascending=False)
+
+    # Create directory
+    out_path = "results"
+    os.makedirs(out_path, exist_ok=True)
+
+    file_path = os.path.join(out_path, "feature_importance.csv")
+
+    # Save (append mode)
+    if os.path.exists(file_path):
+        existing = pd.read_csv(file_path)
+        df = pd.concat([existing, df], ignore_index=True)
+
+    df.to_csv(file_path, index=False)
+    print(f"✅ Saved feature importance to {file_path}")

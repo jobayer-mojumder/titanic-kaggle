@@ -1,11 +1,14 @@
 # type: ignore
 from sklearn.model_selection import cross_val_score
 from modules.constant import BASELINE_SCORE
-from modules.summary import compare_with_baseline
+from sklearn.model_selection import StratifiedKFold
 
 
 def evaluate_model(model, X, y, cv=10, model_name=""):
-    scores = cross_val_score(model, X, y, cv=cv, scoring="accuracy")
+
+    skf = StratifiedKFold(n_splits=cv, shuffle=True, random_state=42)
+
+    scores = cross_val_score(model, X, y, cv=skf, scoring="accuracy")
 
     acc = round(scores.mean(), 5)
     std = round(scores.std(), 5)

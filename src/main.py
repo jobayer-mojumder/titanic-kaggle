@@ -7,7 +7,12 @@ from handlers.dispatcher import print_menu, handle_choice
 from modules.feature_implementation import FEATURE_MAP
 from modules.preprocessing import preprocess
 from modules.evaluation import evaluate_model
-from modules.summary import log_results, get_submission_path, result_already_logged
+from modules.summary import (
+    log_results,
+    get_submission_path,
+    result_already_logged,
+    save_feature_importance,
+)
 from modules.model_tuning import tune_model
 from modules.constant import DEFAULT_MODELS
 
@@ -42,6 +47,8 @@ def run_model(model_key, feature_num, tune=False):
 
     model.fit(X_train, y)
     preds = model.predict(X_test)
+
+    save_feature_importance(model, preproc, model_key, feature_num, tune)
 
     acc, std, cv_scores = evaluate_model(model, X_train, y, model_name=model_key)
 

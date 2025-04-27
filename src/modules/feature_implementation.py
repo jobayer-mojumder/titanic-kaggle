@@ -10,12 +10,11 @@ FEATURE_MAP = {
     3: "is_alone",
     4: "age_group",
     5: "fare_per_person",
-    6: "deck",
+    6: "is_mother",
     7: "has_cabin",
-    8: "ticket_prefix",
-    9: "sex_pclass",
-    10: "is_child",
-    11: "women_children_first",
+    8: "sex_pclass",
+    9: "is_child",
+    10: "women_children_first",
 }
 
 FEATURE_META = {
@@ -24,9 +23,8 @@ FEATURE_META = {
     "IsAlone": {"type": "numeric"},
     "AgeGroup": {"type": "categorical"},
     "FarePerPerson": {"type": "numeric"},
-    "Deck": {"type": "categorical"},
+    "IsMother": {"type": "numeric"},
     "HasCabin": {"type": "numeric"},
-    "TicketPrefix": {"type": "categorical"},
     "SexPclass": {"type": "numeric"},
     "IsChild": {"type": "numeric"},
     "WomenChildrenFirst": {"type": "numeric"},
@@ -93,14 +91,27 @@ def add_fare_per_person(df):
     return df
 
 
-def add_deck(df):
-    deck = {"A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6, "G": 7, "U": 8}
-    df["Cabin"] = df["Cabin"].fillna("U0")
-    df["Deck"] = df["Cabin"].map(lambda x: re.compile("([a-zA-Z]+)").search(x).group())
-    df["Deck"] = df["Deck"].map(deck)
-    df["Deck"] = df["Deck"].fillna(0)
-    df["Deck"] = df["Deck"].astype(int)
+# def add_deck(df):
+#     deck = {"A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6, "G": 7, "U": 8}
+#     cabin = df["Cabin"]
+#     cabin = cabin.fillna("U0")
+#     df["Deck"] = cabin.map(lambda x: re.compile("([a-zA-Z]+)").search(x).group())
+#     df["Deck"] = df["Deck"].map(deck)
+#     df["Deck"] = df["Deck"].fillna(0)
+#     df["Deck"] = df["Deck"].astype(int)
 
+#     return df
+
+
+def add_is_mother(df):
+    name = df["Name"]
+    name = name.str.extract(r" ([A-Za-z]+)\.", expand=False)
+    name = name.replace(["Mlle", "Ms"], "Miss")
+    name = name.replace("Mme", "Mrs")
+
+    df["IsMother"] = (
+        (df["Sex"] == 1) & (df["Parch"] > 0) & (name == "Mrs") & (df["Age"] >= 18)
+    ).astype(int)
     return df
 
 
@@ -140,7 +151,7 @@ FEATURE_FUNCTIONS = {
     "is_alone": add_is_alone,
     "age_group": add_age_group,
     "fare_per_person": add_fare_per_person,
-    "deck": add_deck,
+    "is_mother": add_is_mother,
     "has_cabin": add_has_cabin,
     "ticket_prefix": add_ticket_prefix,
     "sex_pclass": add_sex_pclass,
