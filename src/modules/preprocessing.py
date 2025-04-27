@@ -7,7 +7,7 @@ from sklearn.preprocessing import OneHotEncoder
 
 from modules.feature_implementation import FEATURE_FUNCTIONS, FEATURE_META
 
-ALWAYS_INCLUDED_FEATURES = ["Sex"]
+ALWAYS_INCLUDED_NUMERIC = ["Sex"]
 ALWAYS_INCLUDED_CATEGORICAL = ["Pclass", "Embarked"]
 BASELINE_FEATURES = ["Sex", "Pclass", "Embarked", "Age", "SibSp", "Parch", "Fare"]
 
@@ -26,9 +26,7 @@ def get_column_types(df, selected_features=None):
         cat_cols = ["Pclass", "Embarked"]
     else:
         num_cols = list(
-            set(
-                ALWAYS_INCLUDED_FEATURES + [f for f in known_numeric if f in df.columns]
-            )
+            set(ALWAYS_INCLUDED_NUMERIC + [f for f in known_numeric if f in df.columns])
         )
         cat_cols = list(
             set(
@@ -43,7 +41,7 @@ def get_column_types(df, selected_features=None):
 def build_pipeline(numerical, categorical):
     return ColumnTransformer(
         transformers=[
-            ("num", SimpleImputer(strategy="mean"), numerical),
+            ("num", SimpleImputer(strategy="median"), numerical),
             (
                 "cat",
                 Pipeline(

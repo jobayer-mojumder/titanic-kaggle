@@ -1,13 +1,11 @@
 # type: ignore
 from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import RepeatedStratifiedKFold, cross_val_score
+from sklearn.model_selection import RepeatedStratifiedKFold, StratifiedShuffleSplit
 
 
-def evaluate_model(model, X, y, cv=10, repeats=2, model_name="", random_state=42):
-    skf = RepeatedStratifiedKFold(
-        n_splits=cv, n_repeats=repeats, random_state=random_state
-    )
+def evaluate_model(model, X, y, cv=5, model_name="", random_state=42):
 
+    skf = StratifiedShuffleSplit(n_splits=cv, test_size=0.2, random_state=random_state)
     scores = cross_val_score(model, X, y, cv=skf, scoring="accuracy")
 
     acc = round(scores.mean(), 5)
