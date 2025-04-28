@@ -1,0 +1,2 @@
+model,feature_num,baseline,kaggle_score,improvement,tuned,params
+lgbm,baseline,0.76555,0.76555,0.0,0,
