@@ -1,2 +1,0 @@
-model,feature_num,baseline,kaggle_score,improvement,tuned,params
-rf,baseline,0.76555,0.76555,0.0,0,

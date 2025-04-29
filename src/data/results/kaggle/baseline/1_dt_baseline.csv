@@ -1,0 +1,3 @@
+model,feature_num,baseline,kaggle_score,improvement,tuned,params
+dt,baseline,0.73205,0.73205,0.0,0,
+dt,baseline,0.73205,0.74641,0.01436,1,"{'min_samples_split': 10, 'min_samples_leaf': 10, 'max_depth': 20}"

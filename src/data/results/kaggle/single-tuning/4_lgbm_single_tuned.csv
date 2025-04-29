@@ -1,0 +1,11 @@
+model,feature_num,baseline,kaggle_score,improvement,tuned,params
+lgbm,1,0.76555,0.78708,0.02153,1,"{'subsample': 0.8, 'reg_lambda': 5.0, 'reg_alpha': 2.0, 'n_estimators': 100, 'min_child_samples': 20, 'max_depth': 20, 'learning_rate': 0.2, 'colsample_bytree': 0.8}"
+lgbm,2,0.76555,0.77751,0.01196,1,"{'subsample': 0.8, 'reg_lambda': 5.0, 'reg_alpha': 5.0, 'n_estimators': 100, 'min_child_samples': 10, 'max_depth': 5, 'learning_rate': 0.05, 'colsample_bytree': 0.8}"
+lgbm,3,0.76555,0.77751,0.01196,1,"{'subsample': 0.8, 'reg_lambda': 5.0, 'reg_alpha': 5.0, 'n_estimators': 200, 'min_child_samples': 20, 'max_depth': 7, 'learning_rate': 0.2, 'colsample_bytree': 1.0}"
+lgbm,4,0.76555,0.78468,0.01913,1,"{'subsample': 1.0, 'reg_lambda': 1.0, 'reg_alpha': 0.0, 'n_estimators': 150, 'min_child_samples': 30, 'max_depth': 10, 'learning_rate': 0.1, 'colsample_bytree': 1.0}"
+lgbm,5,0.76555,0.77511,0.00956,1,"{'subsample': 0.8, 'reg_lambda': 0.0, 'reg_alpha': 2.0, 'n_estimators': 50, 'min_child_samples': 30, 'max_depth': -1, 'learning_rate': 0.1, 'colsample_bytree': 1.0}"
+lgbm,6,0.76555,0.77751,0.01196,1,"{'subsample': 0.8, 'reg_lambda': 5.0, 'reg_alpha': 5.0, 'n_estimators': 200, 'min_child_samples': 20, 'max_depth': 7, 'learning_rate': 0.2, 'colsample_bytree': 1.0}"
+lgbm,7,0.76555,0.77751,0.01196,1,"{'subsample': 0.8, 'reg_lambda': 5.0, 'reg_alpha': 5.0, 'n_estimators': 200, 'min_child_samples': 20, 'max_depth': 7, 'learning_rate': 0.2, 'colsample_bytree': 1.0}"
+lgbm,8,0.76555,0.77751,0.01196,1,"{'subsample': 1.0, 'reg_lambda': 1.0, 'reg_alpha': 0.0, 'n_estimators': 150, 'min_child_samples': 30, 'max_depth': 10, 'learning_rate': 0.1, 'colsample_bytree': 1.0}"
+lgbm,9,0.76555,0.78468,0.01913,1,"{'subsample': 1.0, 'reg_lambda': 0.0, 'reg_alpha': 2.0, 'n_estimators': 150, 'min_child_samples': 10, 'max_depth': 20, 'learning_rate': 0.2, 'colsample_bytree': 1.0}"
+lgbm,10,0.76555,0.78468,0.01913,1,"{'subsample': 0.8, 'reg_lambda': 5.0, 'reg_alpha': 5.0, 'n_estimators': 200, 'min_child_samples': 20, 'max_depth': 7, 'learning_rate': 0.2, 'colsample_bytree': 1.0}"

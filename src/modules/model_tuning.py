@@ -5,7 +5,7 @@ import numpy as np
 import scipy.sparse as sp
 
 
-def tune_model(X, y, model_key, cv=10, scoring="accuracy"):
+def tune_model(X, y, model_key, cv=5, scoring="accuracy"):
     print(f"🔍 Tuning model: {model_key.upper()}")
 
     def ensure_numeric_features(X):
@@ -62,25 +62,25 @@ def tune_model(X, y, model_key, cv=10, scoring="accuracy"):
 
     X = ensure_numeric_features(X)
 
-    search = GridSearchCV(
-        estimator=model,
-        param_grid=filtered_param_grid,
-        cv=cv,
-        scoring=scoring,
-        verbose=1,
-        n_jobs=-1,
-    )
-
-    # search = RandomizedSearchCV(
+    # search = GridSearchCV(
     #     estimator=model,
-    #     param_distributions=filtered_param_grid,
-    #     n_iter=25,
-    #     cv=3,
-    #     scoring="accuracy",
-    #     random_state=42,
+    #     param_grid=filtered_param_grid,
+    #     cv=cv,
+    #     scoring=scoring,
     #     verbose=1,
     #     n_jobs=-1,
     # )
+
+    search = RandomizedSearchCV(
+        estimator=model,
+        param_distributions=filtered_param_grid,
+        n_iter=25,
+        cv=cv,
+        scoring="accuracy",
+        random_state=42,
+        verbose=1,
+        n_jobs=-1,
+    )
 
     search.fit(X, y)
 

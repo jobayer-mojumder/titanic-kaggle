@@ -10,12 +10,11 @@ FEATURE_MAP = {
     3: "is_alone",
     4: "age_group",
     5: "fare_per_person",
-    6: "has_cabin",
-    7: "sex_pclass",
-    8: "is_child",
-    9: "women_children_first",
-    10: "deck",
-    11: "ticket_prefix",
+    6: "sex_pclass",
+    7: "deck",
+    8: "is_mother",
+    9: "is_child",
+    10: "women_children_first",
 }
 
 FEATURE_META = {

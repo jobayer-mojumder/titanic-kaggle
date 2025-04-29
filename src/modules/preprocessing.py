@@ -38,10 +38,11 @@ def get_column_types(df, selected_features=None):
     return num_cols, cat_cols
 
 
-def build_pipeline(numerical, categorical):
-    return ColumnTransformer(
-        transformers=[
-            ("num", SimpleImputer(strategy="median"), numerical),
+def build_pipeline(numerical, categorical, model_key=None):
+    transformers = [("num", SimpleImputer(strategy="median"), numerical)]
+
+    if model_key != "cb":
+        transformers.append(
             (
                 "cat",
                 Pipeline(
@@ -51,12 +52,21 @@ def build_pipeline(numerical, categorical):
                     ]
                 ),
                 categorical,
-            ),
-        ]
-    )
+            )
+        )
+    else:
+        transformers.append(
+            (
+                "cat",
+                SimpleImputer(strategy="most_frequent"),
+                categorical,
+            )
+        )
+
+    return ColumnTransformer(transformers=transformers)
 
 
-def preprocess(df, feature_names, is_train=True, ref_pipeline=None):
+def preprocess(df, feature_names, is_train=True, ref_pipeline=None, model_key=None):
     df = df.copy()
 
     # 🧼 Data cleaning
@@ -77,7 +87,7 @@ def preprocess(df, feature_names, is_train=True, ref_pipeline=None):
     numeric, categorical = get_column_types(df, feature_names)
 
     # Build pipeline
-    pipeline = build_pipeline(numeric, categorical)
+    pipeline = build_pipeline(numeric, categorical, model_key)
 
     if is_train:
         X = pipeline.fit_transform(df)

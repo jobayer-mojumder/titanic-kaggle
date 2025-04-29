@@ -34,9 +34,15 @@ def run_model(model_key, feature_num, tune=False):
     y = train["Survived"]
     train.drop(columns=["Survived"], inplace=True)
 
-    X_train, preproc = preprocess(train.copy(), selected_features, is_train=True)
+    X_train, preproc = preprocess(
+        train.copy(), selected_features, is_train=True, model_key=model_key
+    )
     X_test, _ = preprocess(
-        test.copy(), selected_features, is_train=False, ref_pipeline=preproc
+        test.copy(),
+        selected_features,
+        is_train=False,
+        ref_pipeline=preproc,
+        model_key=model_key,
     )
 
     if tune:

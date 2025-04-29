@@ -1,0 +1,11 @@
+model,feature_num,baseline,kaggle_score,improvement,tuned,params
+rf,1,0.76555,0.78708,0.02153,1,"{'n_estimators': 100, 'min_samples_split': 2, 'min_samples_leaf': 1, 'max_depth': 20}"
+rf,2,0.76555,0.77033,0.00478,1,"{'n_estimators': 200, 'min_samples_split': 2, 'min_samples_leaf': 1, 'max_depth': 4}"
+rf,3,0.76555,0.77272,0.00717,1,"{'n_estimators': 200, 'min_samples_split': 10, 'min_samples_leaf': 1, 'max_depth': 3}"
+rf,4,0.76555,0.78468,0.01913,1,"{'n_estimators': 100, 'min_samples_split': 10, 'min_samples_leaf': 5, 'max_depth': 20}"
+rf,5,0.76555,0.77272,0.00717,1,"{'n_estimators': 200, 'min_samples_split': 2, 'min_samples_leaf': 1, 'max_depth': 4}"
+rf,6,0.76555,0.77751,0.01196,1,"{'n_estimators': 100, 'min_samples_split': 10, 'min_samples_leaf': 5, 'max_depth': 20}"
+rf,7,0.76555,0.77751,0.01196,1,"{'n_estimators': 150, 'min_samples_split': 10, 'min_samples_leaf': 1, 'max_depth': 10}"
+rf,8,0.76555,0.77751,0.01196,1,"{'n_estimators': 100, 'min_samples_split': 2, 'min_samples_leaf': 1, 'max_depth': 20}"
+rf,9,0.76555,0.78229,0.01674,1,"{'n_estimators': 100, 'min_samples_split': 5, 'min_samples_leaf': 5, 'max_depth': 5}"
+rf,10,0.76555,0.78468,0.01913,1,"{'n_estimators': 100, 'min_samples_split': 5, 'min_samples_leaf': 5, 'max_depth': 5}"

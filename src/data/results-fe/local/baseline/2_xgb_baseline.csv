@@ -1,2 +1,0 @@
-model,tuned,feature_num,baseline,accuracy,std,improvement,params,cv_scores
-xgb,0,baseline,0.78547,0.78547,0.01822,0.0,,"[0.80446927, 0.77653631, 0.75418994, 0.79888268, 0.79329609]"

@@ -1,0 +1,11 @@
+model,feature_num,baseline,kaggle_score,improvement,tuned,params
+xgb,1,0.75119,0.78708,0.03588,1,"{'subsample': 0.8, 'reg_lambda': 5, 'reg_alpha': 0, 'n_estimators': 150, 'max_depth': 10, 'learning_rate': 0.4, 'gamma': 0.3, 'colsample_bytree': 0.8}"
+xgb,2,0.75119,0.77751,0.02632,1,"{'subsample': 1.0, 'reg_lambda': 1, 'reg_alpha': 5, 'n_estimators': 50, 'max_depth': 6, 'learning_rate': 0.4, 'gamma': 0.1, 'colsample_bytree': 1.0}"
+xgb,3,0.75119,0.77751,0.02632,1,"{'subsample': 1.0, 'reg_lambda': 1, 'reg_alpha': 5, 'n_estimators': 50, 'max_depth': 6, 'learning_rate': 0.4, 'gamma': 0.1, 'colsample_bytree': 1.0}"
+xgb,4,0.75119,0.78468,0.03349,1,"{'subsample': 1.0, 'reg_lambda': 5, 'reg_alpha': 0, 'n_estimators': 200, 'max_depth': 6, 'learning_rate': 0.4, 'gamma': 0.3, 'colsample_bytree': 0.8}"
+xgb,5,0.75119,0.76794,0.01674,1,"{'subsample': 0.8, 'reg_lambda': 5, 'reg_alpha': 0, 'n_estimators': 150, 'max_depth': 10, 'learning_rate': 0.4, 'gamma': 0.3, 'colsample_bytree': 0.8}"
+xgb,6,0.75119,0.77751,0.02632,1,"{'subsample': 0.8, 'reg_lambda': 5, 'reg_alpha': 5, 'n_estimators': 200, 'max_depth': 10, 'learning_rate': 0.4, 'gamma': 0, 'colsample_bytree': 0.8}"
+xgb,7,0.75119,0.77751,0.02632,1,"{'subsample': 0.8, 'reg_lambda': 10, 'reg_alpha': 2, 'n_estimators': 100, 'max_depth': 5, 'learning_rate': 0.3, 'gamma': 0.1, 'colsample_bytree': 1.0}"
+xgb,8,0.75119,0.77751,0.02632,1,"{'subsample': 0.8, 'reg_lambda': 10, 'reg_alpha': 2, 'n_estimators': 100, 'max_depth': 5, 'learning_rate': 0.3, 'gamma': 0.1, 'colsample_bytree': 1.0}"
+xgb,9,0.75119,0.78468,0.03349,1,"{'subsample': 0.8, 'reg_lambda': 1, 'reg_alpha': 2, 'n_estimators': 100, 'max_depth': 5, 'learning_rate': 0.3, 'gamma': 0, 'colsample_bytree': 1.0}"
+xgb,10,0.75119,0.78468,0.03349,1,"{'subsample': 0.8, 'reg_lambda': 5, 'reg_alpha': 5, 'n_estimators': 200, 'max_depth': 10, 'learning_rate': 0.4, 'gamma': 0, 'colsample_bytree': 0.8}"
