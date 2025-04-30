@@ -8,7 +8,7 @@ from modules.analysis import (
     get_10_best_feature_combinations,
     get_10_balanced_feature_combinations,
 )
-
+from modules.constant import BASELINE_SCORE
 
 MODEL_KEYS = {
     "1": ("dt", "Decision Tree", 1),
@@ -195,6 +195,16 @@ def display_table(df, title, file_name, mode):
                 return "large"
 
         df["Effect Size"] = df["eta_p2"].apply(interpret_eta)
+        df["local_improvement"] = df.apply(
+            lambda row: (
+                round(
+                    row["local_accuracy"] - BASELINE_SCORE.get(row["model_key"], 0), 5
+                )
+                if not pd.isna(row["local_accuracy"])
+                else None
+            ),
+            axis=1,
+        )
 
         cols_to_show = [
             "model",
@@ -203,8 +213,7 @@ def display_table(df, title, file_name, mode):
             "kaggle_score",
             "improvement",
             "local_accuracy",
-            "eta_p2",
-            "Effect Size",
+            "local_improvement",
             "params",
         ]
         for col in cols_to_show:
