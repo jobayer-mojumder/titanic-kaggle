@@ -367,6 +367,7 @@ def print_menu(mode):
     print("     [12] Separate single feature summary for all models (Tuned)")
     print("     [13] All 11 single features across models (Untuned)")
     print("     [14] All 11 single features across models (Tuned)")
+    print("     [15] Top 3 single features by importance (Untuned)")
     print("\n🧪 Utility")
     print("     [99] Run all reports for all models")
     print("\n⚙️ Settings")
@@ -590,7 +591,7 @@ def stats_menu():
                     )
         elif choice in ["13", "14"]:
             tuned = choice == "14"
-            ALL_FEATURE_COMBINATION = [list(range(1, 12))]
+            ALL_FEATURE_COMBINATION = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
             all_feature_str = ", ".join(map(str, sorted(ALL_FEATURE_COMBINATION)))
             rows = []
             for _, (model_key, model_label, model_index) in MODEL_KEYS.items():
@@ -611,6 +612,53 @@ def stats_menu():
                 title = f"All 11 Features as One Combination ({'Tuned' if tuned else 'Untuned'})"
                 filename = f"all_features_combined_{mode}{'_tuned' if tuned else '_untuned'}.csv"
                 display_table(df, title, filename, mode)
+
+        elif choice == "15":
+            path = "results/feature_importance.csv"
+            if not os.path.exists(path):
+                print("❌ File not found: feature_importance.csv")
+                input("Press Enter to return to menu...")
+                return
+
+            df_imp = pd.read_csv(path)
+            valid_features = [str(i) for i in range(1, 11)]
+
+            df_single = df_imp[
+                (df_imp["tuned"] == 0) & (df_imp["feature_num"].isin(valid_features))
+            ]
+
+            if df_single.empty:
+                print("⚠️ No untuned single-feature importance data found.")
+                input("Press Enter to return to menu...")
+                return
+
+            rows = []
+            for model_key, group in df_single.groupby("model_key"):
+                grouped = (
+                    group.groupby("feature_num")["importance"].mean().reset_index()
+                )
+                total = grouped["importance"].sum()
+                grouped["normalized"] = 100 * grouped["importance"] / total
+                top3 = grouped.sort_values(by="normalized", ascending=False).head(3)
+                for _, row in top3.iterrows():
+                    rows.append(
+                        {
+                            "Model": model_key.upper(),
+                            "Feature Number": int(row["feature_num"]),
+                            "Normalized Importance (%)": round(row["normalized"], 2),
+                        }
+                    )
+
+            result_df = pd.DataFrame(rows)
+            out_dir = os.path.join("stats", mode)
+            os.makedirs(out_dir, exist_ok=True)
+            out_path = os.path.join(out_dir, "top3_features_by_model_normalized.csv")
+            result_df.to_csv(out_path, index=False)
+
+            print("\n📊 Top 3 Single Features by Normalized Importance (%):\n")
+            print(result_df.to_string(index=False))
+            print(f"\n📁 Saved to {out_path}")
+            input("\nPress Enter to return to menu...")
 
         elif choice == "99":
             print("🧪 Running all 12 reports for all models...\n")
