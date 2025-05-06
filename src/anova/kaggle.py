@@ -1,14 +1,11 @@
-# anova/kaggle.py
-
 import pandas as pd
 import os
 
 
 def generate_jasp_ready_data_kaggle(input_path, output_folder):
-    # Load Kaggle summary CSV
     summary = pd.read_csv(input_path)
 
-    # Prepare columns
+    # Standardize and clean columns
     summary["feature_num"] = summary["feature_num"].astype(str)
     summary["tuned"] = summary["tuned"].fillna(0).astype(int)
     summary["model"] = summary["model"].astype(str)
@@ -16,44 +13,32 @@ def generate_jasp_ready_data_kaggle(input_path, output_folder):
 
     expanded_rows = []
 
-    for idx, row in summary.iterrows():
+    for _, row in summary.iterrows():
         model = row["model"]
         feature_num = row["feature_num"]
-        tuned = row["tuned"]
+        tuned = int(row["tuned"])
         kaggle_score = row["kaggle_score"]
 
-        # Determine group
-        if feature_num == "baseline" and tuned == 0:
-            group = "Baseline"
-        elif feature_num != "baseline" and tuned == 0:
-            group = "FE"
-        elif feature_num == "baseline" and tuned == 1:
-            group = "MT"
-        elif feature_num != "baseline" and tuned == 1:
-            group = "FE+MT"
-        else:
-            group = "Other"
+        # Determine binary flags
+        feature_eng = 0 if feature_num == "baseline" else 1
+        model_tuning = tuned
 
+        # No variance, so only one row per experiment
         expanded_rows.append(
             {
-                "accuracy": kaggle_score,
                 "model": model,
-                "group": group,
+                "Feature_Engineering": feature_eng,
+                "Model_Tuning": model_tuning,
+                "accuracy": kaggle_score,
             }
         )
 
-    # Create DataFrame
-    expanded_df = pd.DataFrame(expanded_rows)
-
-    # Force categorical types (optional)
-    expanded_df["model"] = expanded_df["model"].astype("category")
-    expanded_df["group"] = expanded_df["group"].astype("category")
-
-    # Ensure output folder exists
-    os.makedirs(output_folder, exist_ok=True)
+    # Convert to DataFrame
+    df_out = pd.DataFrame(expanded_rows)
 
     # Save
-    output_path = os.path.join(output_folder, "jasp_kaggle.csv")
-    expanded_df.to_csv(output_path, index=False)
+    os.makedirs(output_folder, exist_ok=True)
+    output_path = os.path.join(output_folder, "anova_kaggle.csv")
+    df_out.to_csv(output_path, index=False)
 
-    print(f"✅ Saved Kaggle JASP-ready data to {output_path}")
+    print(f"✅ Saved ANOVA-ready Kaggle data to {output_path}")
