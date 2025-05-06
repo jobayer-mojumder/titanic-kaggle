@@ -36,7 +36,7 @@ def generate_jasp_ready_data(input_path, output_folder, expand_variance=False):
         except Exception:
             fold_scores = []
 
-        if feature_eng == 0 and model_tuning == 0:
+        if feature_eng == 0:
             if fold_scores:
                 for fold_score in fold_scores:
                     expanded_rows.append(
