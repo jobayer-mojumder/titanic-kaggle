@@ -10,7 +10,7 @@ from itertools import combinations
 
 
 def load_finished_combinations(model_key):
-    model_index_map = {"dt": 1, "xgb": 2, "rf": 3, "lgbm": 4, "cb": 5}
+    model_index_map = {"dt": 1, "rf": 2, "xgb": 3, "lgbm": 4, "cb": 5}
     index = model_index_map[model_key]
     path = f"results/kaggle/tuning-combinations/{index}_{model_key}_comb_tuned.csv"
     if os.path.exists(path):
@@ -50,7 +50,7 @@ def run_all_general_combinations(run_model_func, model_key, tune=False):
 
 
 def run_all_models(run_model_func, runner_fn, tune=False):
-    for model_key in ["dt", "xgb", "rf", "lgbm", "cb"]:
+    for model_key in ["dt", "rf", "xgb", "lgbm", "cb"]:
         runner_fn(run_model_func, model_key, tune=tune)
 
 

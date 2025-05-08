@@ -15,6 +15,7 @@ FEATURE_MAP = {
     8: "is_mother",
     9: "is_child",
     10: "women_children_first",
+    11: "ticket_prefix",
 }
 
 FEATURE_META = {
@@ -153,7 +154,6 @@ FEATURE_FUNCTIONS = {
     "deck": add_deck,
     "is_mother": add_is_mother,
     "has_cabin": add_has_cabin,
-    "ticket_prefix": add_ticket_prefix,
     "sex_pclass": add_sex_pclass,
     "is_child": add_is_child,
     "women_children_first": add_women_children_first,

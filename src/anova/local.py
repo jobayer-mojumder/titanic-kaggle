@@ -1,90 +1,103 @@
-# anova/local.py
-
 import pandas as pd
 import ast
 import os
 
 
-def generate_jasp_ready_data(input_path, output_folder, expand_variance=False):
+def generate_jasp_ready_data(
+    input_path, output_folder, expand_variance=False, top_k=5, distinct=True
+):
     summary = pd.read_csv(input_path)
 
-    # Standardize and clean columns
+    # Clean and convert columns
     summary["feature_num"] = summary["feature_num"].astype(str)
     summary["tuned"] = summary["tuned"].fillna(0).astype(int)
     summary["model"] = summary["model"].astype(str)
     summary["accuracy"] = summary["accuracy"].fillna(0)
     summary["cv_scores"] = summary["cv_scores"].fillna("[]")
 
-    expanded_rows = []
+    balanced_rows = []
 
-    for _, row in summary.iterrows():
-        model = row["model"]
-        feature_num = row["feature_num"]
-        tuned = int(row["tuned"])
-        acc_mean = row["accuracy"]
-        cv_scores_str = row["cv_scores"]
+    for model in summary["model"].unique():
+        model_data = summary[summary["model"] == model]
 
-        # Determine group labels
-        feature_eng = 0 if feature_num == "baseline" else 1
-        model_tuning = tuned
-
-        # Safe parse CV scores
-        try:
-            fold_scores = ast.literal_eval(cv_scores_str)
-            if not isinstance(fold_scores, list):
-                fold_scores = []
-        except Exception:
-            fold_scores = []
-
-        if feature_eng == 0:
-            if fold_scores:
-                for fold_score in fold_scores:
-                    expanded_rows.append(
-                        {
-                            "accuracy": fold_score,
-                            "Feature_Engineering": feature_eng,
-                            "Model_Tuning": model_tuning,
-                            "model": model,
-                        }
-                    )
-            else:
-                expanded_rows.append(
+        # 1. Baseline: tuned = 0, feature_num = baseline (use CV scores)
+        baseline_rows = model_data[
+            (model_data["tuned"] == 0) & (model_data["feature_num"] == "baseline")
+        ]
+        for _, row in baseline_rows.iterrows():
+            scores = safe_parse_cv(row["cv_scores"])
+            for score in scores[:top_k]:
+                balanced_rows.append(
                     {
-                        "accuracy": acc_mean,
-                        "Feature_Engineering": feature_eng,
-                        "Model_Tuning": model_tuning,
+                        "accuracy": score,
+                        "Feature_Engineering": 0,
+                        "Model_Tuning": 0,
                         "model": model,
                     }
                 )
 
-        else:
-            if expand_variance and fold_scores:
-                for score in fold_scores:
-                    expanded_rows.append(
-                        {
-                            "model": model,
-                            "Feature_Engineering": feature_eng,
-                            "Model_Tuning": model_tuning,
-                            "accuracy": score,
-                        }
-                    )
-            else:
-                expanded_rows.append(
+        # 2. Feature Engineering: tuned = 0, feature_num ≠ baseline
+        fe_rows = model_data[
+            (model_data["tuned"] == 0) & (model_data["feature_num"] != "baseline")
+        ].sort_values(by="accuracy", ascending=False)
+        if distinct:
+            fe_rows = fe_rows.drop_duplicates(subset=["accuracy"])
+        for _, row in fe_rows.head(top_k).iterrows():
+            balanced_rows.append(
+                {
+                    "accuracy": row["accuracy"],
+                    "Feature_Engineering": 1,
+                    "Model_Tuning": 0,
+                    "model": model,
+                }
+            )
+
+        # 3. Model Tuning: tuned = 1, feature_num = baseline (use CV scores)
+        mt_rows = model_data[
+            (model_data["tuned"] == 1) & (model_data["feature_num"] == "baseline")
+        ]
+        for _, row in mt_rows.iterrows():
+            scores = safe_parse_cv(row["cv_scores"])
+            for score in scores[:top_k]:
+                balanced_rows.append(
                     {
+                        "accuracy": score,
+                        "Feature_Engineering": 0,
+                        "Model_Tuning": 1,
                         "model": model,
-                        "Feature_Engineering": feature_eng,
-                        "Model_Tuning": model_tuning,
-                        "accuracy": acc_mean,
                     }
                 )
 
-    # Convert to DataFrame
-    df_out = pd.DataFrame(expanded_rows)
+        # 4. FE + MT: tuned = 1, feature_num ≠ baseline
+        femt_rows = model_data[
+            (model_data["tuned"] == 1) & (model_data["feature_num"] != "baseline")
+        ].sort_values(by="accuracy", ascending=False)
+        if distinct:
+            femt_rows = femt_rows.drop_duplicates(subset=["accuracy"])
+        for _, row in femt_rows.head(top_k).iterrows():
+            balanced_rows.append(
+                {
+                    "accuracy": row["accuracy"],
+                    "Feature_Engineering": 1,
+                    "Model_Tuning": 1,
+                    "model": model,
+                }
+            )
 
-    # Save
+    df_out = pd.DataFrame(balanced_rows)
     os.makedirs(output_folder, exist_ok=True)
-    filename = "anova_local_variance.csv" if expand_variance else "anova_local.csv"
+    filename = "anova_local_balanced.csv"
     output_path = os.path.join(output_folder, filename)
     df_out.to_csv(output_path, index=False)
 
-    print(f"✅ Saved ANOVA-ready data to {output_path}")
+    print(f"✅ Saved balanced ANOVA-ready data to {output_path}")
+
+
+def safe_parse_cv(cv_str):
+    try:
+        scores = ast.literal_eval(cv_str)
+        if isinstance(scores, list):
+            return scores
+    except Exception:
+        pass
+    return []
