@@ -552,7 +552,7 @@ def stats_menu():
             tuned = choice == "12"
             out_dir = os.path.join("stats", mode, "single")
             os.makedirs(out_dir, exist_ok=True)
-            for feature_num in range(1, 12):
+            for feature_num in range(1, 13):
                 rows = []
                 for k, (model_key, model_label, model_index) in MODEL_KEYS.items():
                     df = extract_single_feature_scores(
@@ -591,7 +591,7 @@ def stats_menu():
                     )
         elif choice in ["13", "14"]:
             tuned = choice == "14"
-            ALL_FEATURE_COMBINATION = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+            ALL_FEATURE_COMBINATION = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
             all_feature_str = ", ".join(map(str, sorted(ALL_FEATURE_COMBINATION)))
             rows = []
             for _, (model_key, model_label, model_index) in MODEL_KEYS.items():
@@ -621,7 +621,7 @@ def stats_menu():
                 return
 
             df_imp = pd.read_csv(path)
-            valid_features = [str(i) for i in range(1, 11)]
+            valid_features = [str(i) for i in range(1, 13)]
 
             df_single = df_imp[
                 (df_imp["tuned"] == 0) & (df_imp["feature_num"].isin(valid_features))
