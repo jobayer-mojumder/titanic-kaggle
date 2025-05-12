@@ -4,7 +4,7 @@ from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 from catboost import CatBoostClassifier
 
-MAX_FEATURES_NUM = 11
+MAX_FEATURES_NUM = 12
 
 DECISION_TREE_BASE_SCORE = 0.75754
 XGBOOST_BASE_SCORE = 0.78547

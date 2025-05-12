@@ -1,3 +1,0 @@
-model,feature_num,baseline,kaggle_score,improvement,tuned,params
-dt,baseline,0.73205,0.73205,0.0,0,
-dt,baseline,0.73205,0.75119,0.01914,1,"{'splitter': 'best', 'min_samples_split': 2, 'min_samples_leaf': 5, 'max_leaf_nodes': 50, 'max_features': None, 'max_depth': None, 'criterion': 'log_loss', 'class_weight': 'balanced'}"

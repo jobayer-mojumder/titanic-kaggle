@@ -16,6 +16,7 @@ FEATURE_MAP = {
     9: "is_child",
     10: "women_children_first",
     11: "ticket_prefix",
+    12: "has_cabin",
 }
 
 FEATURE_META = {
@@ -104,14 +105,21 @@ def add_deck(df):
 
 
 def add_is_mother(df):
-    name = df["Name"]
-    name = name.str.extract(r" ([A-Za-z]+)\.", expand=False)
-    name = name.replace(["Mlle", "Ms"], "Miss")
-    name = name.replace("Mme", "Mrs")
+    temp_added = False
+    if "Title" not in df.columns:
+        df = add_title(df)
+        temp_added = True
 
     df["IsMother"] = (
-        (df["Sex"] == 1) & (df["Parch"] > 0) & (name == "Mrs") & (df["Age"] >= 18)
+        (df["Sex"] == 1)  # female
+        & (df["Parch"] > 0)
+        & (df["Title"] == "Mrs")
+        & (df["Age"] >= 18)
     ).astype(int)
+
+    if temp_added:
+        df.drop(columns=["Title"], inplace=True)
+
     return df
 
 

@@ -1,3 +1,0 @@
-model,tuned,feature_num,baseline,accuracy,std,improvement,params,cv_scores
-lgbm,0,baseline,0.78994,0.78994,0.01603,0.0,,"[0.78212291, 0.78770950, 0.77653631, 0.82122905, 0.78212291]"
-lgbm,1,baseline,0.78994,0.8,0.02246,0.01006,"{'subsample': 1.0, 'reg_lambda': 0, 'reg_alpha': 0, 'num_leaves': 15, 'n_estimators': 100, 'min_child_samples': 10, 'max_depth': 3, 'learning_rate': 0.2, 'colsample_bytree': 0.8, 'class_weight': None, 'boosting_type': 'gbdt'}","[0.80446927, 0.81005587, 0.76536313, 0.83240223, 0.78770950]"

@@ -1,3 +1,0 @@
-model,feature_num,baseline,kaggle_score,improvement,tuned,params
-cb,baseline,0.77751,0.77751,0.0,0,
-cb,baseline,0.77751,0.76794,-0.00957,1,"{'scale_pos_weight': 2, 'random_strength': 0.5, 'learning_rate': 0.03, 'l2_leaf_reg': 5, 'iterations': 400, 'grow_policy': 'Lossguide', 'depth': 4, 'border_count': 64, 'bootstrap_type': 'MVS', 'bagging_temperature': 0.7}"
