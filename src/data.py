@@ -1,3 +1,7 @@
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+
 #  exp1: Baseline data for all models
 baseline_evaluation = [
     {"Model": "Decision Tree", "Kaggle": 0.73205, "Local": 0.75754},
@@ -492,7 +496,7 @@ single_feature_data_untuned = [
 ]
 
 #  exp3: Top 10 feature combinations for all models
-top10_feature_combinations_untuned = [
+top10_feature_combinations = [
     {
         "Model": "Decision Tree",
         "Feature_Combination": [1, 3, 4, 6, 7, 9, 10, 11],
@@ -732,6 +736,166 @@ top10_feature_combinations_untuned = [
         "Improvement": 0.04306,
         "Local": 0.79553,
         "Local_Improvement": 0.00447,
+    },
+    {
+        "Model": "LightGBM",
+        "Feature_Combination": [1, 3, 4, 6, 8, 9, 11, 12],
+        "Kaggle": 0.80382,
+        "Improvement": 0.03827,
+        "Local": 0.78883,
+        "Local_Improvement": -0.00111,
+    },
+    {
+        "Model": "LightGBM",
+        "Feature_Combination": [1, 3, 4, 6, 7, 8, 11, 12],
+        "Kaggle": 0.80382,
+        "Improvement": 0.03827,
+        "Local": 0.78883,
+        "Local_Improvement": -0.00111,
+    },
+    {
+        "Model": "LightGBM",
+        "Feature_Combination": [1, 3, 4, 6, 8, 11, 12],
+        "Kaggle": 0.80382,
+        "Improvement": 0.03827,
+        "Local": 0.78883,
+        "Local_Improvement": -0.00111,
+    },
+    {
+        "Model": "LightGBM",
+        "Feature_Combination": [1, 3, 4, 6, 7, 8, 9, 11, 12],
+        "Kaggle": 0.80382,
+        "Improvement": 0.03827,
+        "Local": 0.78883,
+        "Local_Improvement": -0.00111,
+    },
+    {
+        "Model": "LightGBM",
+        "Feature_Combination": [1, 3, 4, 7, 11],
+        "Kaggle": 0.80143,
+        "Improvement": 0.03588,
+        "Local": 0.78883,
+        "Local_Improvement": -0.00111,
+    },
+    {
+        "Model": "LightGBM",
+        "Feature_Combination": [1, 3, 4, 9, 11],
+        "Kaggle": 0.80143,
+        "Improvement": 0.03588,
+        "Local": 0.78883,
+        "Local_Improvement": -0.00111,
+    },
+    {
+        "Model": "LightGBM",
+        "Feature_Combination": [1, 3, 4, 11],
+        "Kaggle": 0.80143,
+        "Improvement": 0.03588,
+        "Local": 0.78883,
+        "Local_Improvement": -0.00111,
+    },
+    {
+        "Model": "LightGBM",
+        "Feature_Combination": [1, 3, 4, 7, 9, 11],
+        "Kaggle": 0.80143,
+        "Improvement": 0.03588,
+        "Local": 0.78883,
+        "Local_Improvement": -0.00111,
+    },
+    {
+        "Model": "LightGBM",
+        "Feature_Combination": [1, 3, 4, 8, 11],
+        "Kaggle": 0.79904,
+        "Improvement": 0.03349,
+        "Local": 0.79106,
+        "Local_Improvement": 0.00112,
+    },
+    {
+        "Model": "LightGBM",
+        "Feature_Combination": [1, 3, 7, 8, 9, 11],
+        "Kaggle": 0.79904,
+        "Improvement": 0.03349,
+        "Local": 0.79218,
+        "Local_Improvement": 0.00224,
+    },
+    {
+        "Model": "CatBoost",
+        "Feature_Combination": [1, 3, 5, 8, 10, 11, 12],
+        "Kaggle": 0.80143,
+        "Improvement": 0.02391,
+        "Local": 0.80894,
+        "Local_Improvement": -0.00112,
+    },
+    {
+        "Model": "CatBoost",
+        "Feature_Combination": [1, 3, 5, 7, 8, 10, 11, 12],
+        "Kaggle": 0.80143,
+        "Improvement": 0.02391,
+        "Local": 0.80894,
+        "Local_Improvement": -0.00112,
+    },
+    {
+        "Model": "CatBoost",
+        "Feature_Combination": [1, 5, 6, 7, 8, 10, 11, 12],
+        "Kaggle": 0.80143,
+        "Improvement": 0.02391,
+        "Local": 0.81229,
+        "Local_Improvement": 0.00223,
+    },
+    {
+        "Model": "CatBoost",
+        "Feature_Combination": [1, 5, 6, 8, 10, 11, 12],
+        "Kaggle": 0.80143,
+        "Improvement": 0.02391,
+        "Local": 0.81229,
+        "Local_Improvement": 0.00223,
+    },
+    {
+        "Model": "CatBoost",
+        "Feature_Combination": [1, 3, 4, 8, 9, 11, 12],
+        "Kaggle": 0.79904,
+        "Improvement": 0.02152,
+        "Local": 0.80223,
+        "Local_Improvement": -0.00783,
+    },
+    {
+        "Model": "CatBoost",
+        "Feature_Combination": [3, 5, 8, 10, 11, 12],
+        "Kaggle": 0.79904,
+        "Improvement": 0.02152,
+        "Local": 0.8067,
+        "Local_Improvement": -0.00336,
+    },
+    {
+        "Model": "CatBoost",
+        "Feature_Combination": [3, 5, 8, 9, 10, 11],
+        "Kaggle": 0.79904,
+        "Improvement": 0.02152,
+        "Local": 0.80223,
+        "Local_Improvement": -0.00783,
+    },
+    {
+        "Model": "CatBoost",
+        "Feature_Combination": [1, 4, 5, 8, 11, 12],
+        "Kaggle": 0.79904,
+        "Improvement": 0.02152,
+        "Local": 0.8067,
+        "Local_Improvement": -0.00336,
+    },
+    {
+        "Model": "CatBoost",
+        "Feature_Combination": [1, 4, 5, 9, 11, 12],
+        "Kaggle": 0.79904,
+        "Improvement": 0.02152,
+        "Local": 0.80559,
+        "Local_Improvement": -0.00447,
+    },
+    {
+        "Model": "CatBoost",
+        "Feature_Combination": [3, 4, 5, 6, 8, 10, 11],
+        "Kaggle": 0.79904,
+        "Improvement": 0.02152,
+        "Local": 0.80112,
+        "Local_Improvement": -0.00894,
     },
 ]
 
@@ -1776,3 +1940,81 @@ all_features_combined_tuned = [
         "Local_Improvement": -0.01006,
     },
 ]
+
+
+def exp_1_plot_baseline_comparison(
+    data, title="Experiment 1: Baseline Model accuracy", save_path=None
+):
+    df = pd.DataFrame(data)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    bar_width = 0.35
+    x = range(len(df))
+
+    # Bars
+    bars1 = ax.bar(
+        [i - bar_width / 2 for i in x], df["Kaggle"], width=bar_width, label="Kaggle"
+    )
+    bars2 = ax.bar(
+        [i + bar_width / 2 for i in x], df["Local"], width=bar_width, label="Local"
+    )
+
+    # Labels and Title
+    ax.set_xlabel("Model")
+    ax.set_ylabel("Accuracy")
+    ax.set_title(title)
+    ax.set_xticks(list(x))
+    ax.set_xticklabels(df["Model"])
+    ax.set_ylim(0.7, 0.83)
+    ax.legend()
+
+    # Annotations
+    for bar in bars1 + bars2:
+        height = bar.get_height()
+        ax.annotate(
+            f"{height:.3f}",
+            xy=(bar.get_x() + bar.get_width() / 2, height),
+            xytext=(0, 3),
+            textcoords="offset points",
+            ha="center",
+            va="bottom",
+            fontsize=8,
+        )
+
+    plt.tight_layout()
+
+    if save_path:
+        plt.savefig(save_path)
+        print(f"✅ Plot saved to {save_path}")
+    else:
+        plt.show()
+
+
+def exp_2_plot_single_feature_accuracy(data):
+    df = pd.DataFrame(data)
+    sns.set(style="whitegrid")
+
+    # Local Accuracy
+    plt.figure(figsize=(12, 6))
+    ax1 = sns.barplot(data=df, x="Feature", y="Local", hue="Model", palette="tab10")
+    ax1.set_title("Experiment 2: Local Accuracy per Feature (Untuned)")
+    ax1.set_ylabel("Local Accuracy")
+    ax1.set_xlabel("Feature Number")
+    ax1.set_ylim(0.74, 0.82)
+    plt.legend(title="Model", bbox_to_anchor=(1.02, 1), loc="upper left")
+    plt.tight_layout()
+    plt.show()
+
+    # Kaggle Accuracy
+    plt.figure(figsize=(12, 6))
+    ax2 = sns.barplot(data=df, x="Feature", y="Kaggle", hue="Model", palette="tab10")
+    ax2.set_title("Experiment 2: Kaggle Accuracy per Feature (Untuned)")
+    ax2.set_ylabel("Kaggle Accuracy")
+    ax2.set_xlabel("Feature Number")
+    ax2.set_ylim(0.74, 0.82)
+    plt.legend(title="Model", bbox_to_anchor=(1.02, 1), loc="upper left")
+    plt.tight_layout()
+    plt.show()
+
+
+exp_1_plot_baseline_comparison(baseline_evaluation)
+exp_2_plot_single_feature_accuracy(single_feature_data_untuned)
