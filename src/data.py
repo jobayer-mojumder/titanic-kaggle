@@ -2105,33 +2105,231 @@ all_features_combined_tuned = [
     },
 ]
 
+fixed_palette = {
+    "Decision Tree": "#1f77b4",
+    "XGBoost": "#ff7f0e",
+    "Random Forests": "#2ca02c",
+    "LightGBM": "#d62728",
+    "CatBoost": "#9467bd",
+}
+
+# Common plot style
+sns.set(style="whitegrid")
+plt.rcParams.update(
+    {
+        "axes.titlesize": 12,
+        "axes.labelsize": 10,
+        "xtick.labelsize": 9,
+        "ytick.labelsize": 9,
+        "legend.fontsize": 9,
+    }
+)
+
+
+def generate_fixed_palette(keys):
+    palette_colors = sns.color_palette("tab10", n_colors=len(set(keys)))
+    return dict(zip(sorted(set(keys)), palette_colors))
+
+
+def annotate_bars(ax):
+    for p in ax.patches:
+        height = p.get_height()
+        ax.annotate(
+            f"{height:.3f}",
+            (p.get_x() + p.get_width() / 2.0, height),
+            ha="center",
+            va="bottom",
+            fontsize=8,
+            xytext=(0, 3),
+            textcoords="offset points",
+        )
+
 
 def exp_1_plot_baseline_comparison(
-    data, title="Experiment 1: Baseline Model accuracy", save_path=None
+    data, title="Experiment 1: Baseline Model Accuracy", save_path=None
+):
+    df = pd.DataFrame(data)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    bar_width = 0.35
+    x = range(len(df))
+    kaggle_colors = [fixed_palette[m] for m in df["Model"]]
+    local_colors = kaggle_colors
+
+    bars1 = ax.bar(
+        [i - bar_width / 2 for i in x],
+        df["Kaggle"],
+        width=bar_width,
+        label="Kaggle",
+        color=kaggle_colors,
+    )
+    bars2 = ax.bar(
+        [i + bar_width / 2 for i in x],
+        df["Local"],
+        width=bar_width,
+        label="Local",
+        color=local_colors,
+        alpha=0.75,
+    )
+
+    ax.set_xlabel("Model")
+    ax.set_ylabel("Accuracy")
+    ax.set_title(title + "\n(Deterministic run with fixed seed = 42)")
+    ax.set_xticks(list(x))
+    ax.set_xticklabels(df["Model"])
+    ax.set_ylim(0.6, 0.9)
+    ax.yaxis.grid(True, linestyle="--", alpha=0.5)
+    ax.legend()
+    annotate_bars(ax)
+    plt.tight_layout()
+    if save_path:
+        plt.savefig(save_path, dpi=300)
+    else:
+        plt.show()
+
+
+def exp_2_and_8_plot_single_feature_accuracy(data, tuned=False):
+    df = pd.DataFrame(data)
+    exp_num = 8 if tuned else 2
+    suffix = " (Tuned)" if tuned else " (Untuned)"
+
+    for metric in ["Local", "Kaggle"]:
+        plt.figure(figsize=(12, 6))
+        ax = sns.barplot(
+            data=df, x="Feature", y=metric, hue="Model", palette=fixed_palette
+        )
+        ax.set_title(
+            f"Experiment {exp_num}: {metric} Accuracy per Feature{suffix}\n(Seed=42, deterministic)"
+        )
+        ax.set_ylabel(f"{metric} Accuracy")
+        ax.set_xlabel("Feature Number")
+        ax.set_ylim(0.6, 0.9)
+        ax.yaxis.grid(True, linestyle="--", alpha=0.5)
+        plt.legend(title="Model", bbox_to_anchor=(1.02, 1), loc="upper left")
+        plt.tight_layout()
+        plt.show()
+
+
+def exp_3_and_9_plot_top10_combination_accuracy(data, tuned=False):
+    df = pd.DataFrame(data)
+    df["Combination_ID"] = df.index.astype(str)
+    exp_num = 9 if tuned else 3
+    suffix = " (Tuned)" if tuned else " (Untuned)"
+
+    for metric in ["Local", "Kaggle"]:
+        plt.figure(figsize=(18, 7))
+        ax = sns.barplot(
+            data=df, x="Combination_ID", y=metric, hue="Model", palette=fixed_palette
+        )
+        ax.set_title(
+            f"Experiment {exp_num}: {metric} Accuracy - Top 10 Feature Combinations{suffix}\n(Seed=42, deterministic)"
+        )
+        ax.set_ylabel(f"{metric} Accuracy")
+        ax.set_xlabel("Feature Combination")
+        ax.set_ylim(0.6, 0.9)
+        ax.set_xticklabels(
+            df["Feature_Combination"], rotation=60, ha="right", fontsize=7
+        )
+        ax.yaxis.grid(True, linestyle="--", alpha=0.5)
+        plt.legend(title="Model", bbox_to_anchor=(1.02, 1), loc="upper left")
+        plt.tight_layout()
+        plt.show()
+
+
+def exp_4_and_10_plot_best_combinations_accuracy(data, tuned=False):
+    df = pd.DataFrame(data)
+    exp_num = 10 if tuned else 4
+    suffix = " (Tuned)" if tuned else " (Untuned)"
+
+    for metric in ["Local", "Kaggle"]:
+        plt.figure(figsize=(10, 6))
+        ax = sns.barplot(data=df, x="Model", y=metric, palette=fixed_palette)
+        ax.set_title(
+            f"Experiment {exp_num}: Best Feature Combination per Model{suffix} - {metric} Accuracy\n(Seed=42, deterministic)"
+        )
+        ax.set_ylabel(f"{metric} Accuracy")
+        ax.set_xlabel("Model")
+        ax.set_ylim(0.6, 0.9)
+        ax.yaxis.grid(True, linestyle="--", alpha=0.5)
+        annotate_bars(ax)
+        plt.tight_layout()
+        plt.show()
+
+
+def exp_5_and_11_plot_all_features_combined_accuracy(data, tuned=False):
+    df = pd.DataFrame(data)
+    exp_num = 11 if tuned else 5
+    suffix = " (Tuned)" if tuned else " (Untuned)"
+
+    for metric in ["Local", "Kaggle"]:
+        plt.figure(figsize=(10, 6))
+        ax = sns.barplot(data=df, x="Model", y=metric, palette=fixed_palette)
+        ax.set_title(
+            f"Experiment {exp_num}: All Features Combined {suffix} - {metric} Accuracy\n(Seed=42, deterministic)"
+        )
+        ax.set_ylabel(f"{metric} Accuracy")
+        ax.set_xlabel("Model")
+        ax.set_ylim(0.6, 0.9)
+        ax.yaxis.grid(True, linestyle="--", alpha=0.5)
+        annotate_bars(ax)
+        plt.tight_layout()
+        plt.show()
+
+
+def exp_6_top3_feature_each_model(data):
+    df = pd.DataFrame(data)
+    df["Label"] = df["Model"] + " - " + df["Feature Name"]
+    fixed_palette = generate_fixed_palette(df["Label"])
+
+    plt.figure(figsize=(14, 6))
+    ax = sns.barplot(data=df, x="Label", y="Importance (%)", palette=fixed_palette)
+    plt.title(
+        "Experiment 6: Top 3 Features per Model (Feature Importance)\nStatic single-run result with seed = 42"
+    )
+    plt.ylabel("Importance (%)")
+    plt.xlabel("Model - Feature")
+    plt.xticks(rotation=45, ha="right")
+    ax.yaxis.grid(True, linestyle="--", alpha=0.5)
+    annotate_bars(ax)
+    plt.tight_layout()
+    plt.show()
+
+
+def exp_7_baseline_model_tuned(
+    data, title="Experiment 7: Baseline Model (Tuned) Accuracy", save_path=None
 ):
     df = pd.DataFrame(data)
     fig, ax = plt.subplots(figsize=(10, 6))
     bar_width = 0.35
     x = range(len(df))
 
-    # Bars
+    kaggle_colors = [fixed_palette[m] for m in df["Model"]]
+    local_colors = [fixed_palette[m] for m in df["Model"]]
+
     bars1 = ax.bar(
-        [i - bar_width / 2 for i in x], df["Kaggle"], width=bar_width, label="Kaggle"
+        [i - bar_width / 2 for i in x],
+        df["Kaggle"],
+        width=bar_width,
+        label="Kaggle",
+        color=kaggle_colors,
     )
     bars2 = ax.bar(
-        [i + bar_width / 2 for i in x], df["Local"], width=bar_width, label="Local"
+        [i + bar_width / 2 for i in x],
+        df["Local"],
+        width=bar_width,
+        label="Local",
+        color=local_colors,
+        alpha=0.75,
     )
 
-    # Labels and Title
     ax.set_xlabel("Model")
     ax.set_ylabel("Accuracy")
-    ax.set_title(title)
+    ax.set_title(title + "\n(Deterministic run with fixed seed = 42)")
     ax.set_xticks(list(x))
     ax.set_xticklabels(df["Model"])
-    ax.set_ylim(0.7, 0.83)
+    ax.set_ylim(0.6, 0.9)
+    ax.yaxis.grid(True, linestyle="--", alpha=0.5)
     ax.legend()
 
-    # Annotations
     for bar in bars1 + bars2:
         height = bar.get_height()
         ax.annotate(
@@ -2145,305 +2343,80 @@ def exp_1_plot_baseline_comparison(
         )
 
     plt.tight_layout()
-
     if save_path:
-        plt.savefig(save_path)
+        plt.savefig(save_path, dpi=300)
         print(f"✅ Plot saved to {save_path}")
     else:
         plt.show()
 
 
-def exp_2_and_8_plot_single_feature_accuracy(data, tuned=False):
+def plot_combined_accuracy(data, experiment_number, title_suffix):
     df = pd.DataFrame(data)
-    sns.set(style="whitegrid")
-    if tuned:
-        title_suffix = " (Tuned)"
-        experiment_no = 8
-    else:
-        title_suffix = " (Untuned)"
-        experiment_no = 2
-    # Local Accuracy
-    plt.figure(figsize=(12, 6))
-    ax1 = sns.barplot(data=df, x="Feature", y="Local", hue="Model", palette="tab10")
-    ax1.set_title(
-        f"Experiment {experiment_no}: Local Accuracy per Feature{title_suffix}"
+    fig, ax = plt.subplots(figsize=(10, 6))
+    bar_width = 0.35
+    x = range(len(df))
+
+    kaggle_colors = [fixed_palette[m] for m in df["Model"]]
+    local_colors = kaggle_colors
+
+    bars1 = ax.bar(
+        [i - bar_width / 2 for i in x],
+        df["Kaggle"],
+        width=bar_width,
+        label="Kaggle",
+        color=kaggle_colors,
     )
-    ax1.set_ylabel("Local Accuracy")
-    ax1.set_xlabel("Feature Number")
-    ax1.set_ylim(0.74, 0.82)
-    plt.legend(title="Model", bbox_to_anchor=(1.02, 1), loc="upper left")
-    plt.tight_layout()
-    plt.show()
-
-    # Kaggle Accuracy
-    plt.figure(figsize=(12, 6))
-    ax2 = sns.barplot(data=df, x="Feature", y="Kaggle", hue="Model", palette="tab10")
-    ax2.set_title(
-        f"Experiment {experiment_no}: Kaggle Accuracy per Feature{title_suffix}"
+    bars2 = ax.bar(
+        [i + bar_width / 2 for i in x],
+        df["Local"],
+        width=bar_width,
+        label="Local",
+        color=local_colors,
+        alpha=0.75,
     )
-    ax2.set_ylabel("Kaggle Accuracy")
-    ax2.set_xlabel("Feature Number")
-    ax2.set_ylim(0.74, 0.82)
-    plt.legend(title="Model", bbox_to_anchor=(1.02, 1), loc="upper left")
-    plt.tight_layout()
-    plt.show()
 
-
-def exp_3_and_9_plot_top10_combination_accuracy(
-    top10_feature_combinations, tuned=False
-):
-    df = pd.DataFrame(top10_feature_combinations)
-    df["Combination_ID"] = df.index.astype(str)
-
-    if tuned:
-        title_suffix = " (Tuned)"
-        experiment_no = 9
-    else:
-        title_suffix = " (Untuned)"
-        experiment_no = 3
-
-    sns.set(style="whitegrid")
-
-    # Local Accuracy Plot
-    plt.figure(figsize=(18, 7))
-    ax1 = sns.barplot(
-        data=df, x="Combination_ID", y="Local", hue="Model", palette="tab10"
+    ax.set_xlabel("Model")
+    ax.set_ylabel("Accuracy")
+    ax.set_title(
+        f"Experiment {experiment_number}: {title_suffix}\n(Local & Kaggle Accuracy - Seed=42)"
     )
-    ax1.set_title(
-        f"Experiment {experiment_no}: Local Accuracy - Top 10 Feature Combinations{title_suffix}"
-    )
-    ax1.set_ylabel("Local Accuracy")
-    ax1.set_xlabel("Feature Combination")
-    ax1.set_ylim(0.74, 0.83)
-    ax1.set_xticklabels(df["Feature_Combination"], rotation=60, ha="right", fontsize=7)
-    plt.legend(title="Model", bbox_to_anchor=(1.02, 1), loc="upper left")
-    plt.tight_layout()
-    plt.show()
-
-    # Kaggle Accuracy Plot
-    plt.figure(figsize=(18, 7))
-    ax2 = sns.barplot(
-        data=df, x="Combination_ID", y="Kaggle", hue="Model", palette="tab10"
-    )
-    ax2.set_title(
-        f"Experiment {experiment_no}: Kaggle Accuracy - Top 10 Feature Combinations{title_suffix}"
-    )
-    ax2.set_ylabel("Kaggle Accuracy")
-    ax2.set_xlabel("Feature Combination")
-    ax2.set_ylim(0.74, 0.83)
-    ax2.set_xticklabels(df["Feature_Combination"], rotation=60, ha="right", fontsize=7)
-    plt.legend(title="Model", bbox_to_anchor=(1.02, 1), loc="upper left")
+    ax.set_xticks(list(x))
+    ax.set_xticklabels(df["Model"])
+    ax.set_ylim(0.6, 0.9)
+    ax.yaxis.grid(True, linestyle="--", alpha=0.5)
+    ax.legend()
+    annotate_bars(ax)
     plt.tight_layout()
     plt.show()
 
 
-def exp_4_and_10_plot_best_combinations_accuracy(
-    best_feature_combinations_untuned, tuned=False
-):
-    df = pd.DataFrame(best_feature_combinations_untuned)
-
-    if tuned:
-        title_suffix = " (Tuned)"
-        experiment_no = 10
-    else:
-        title_suffix = " (Untuned)"
-        experiment_no = 4
-
-    sns.set(style="whitegrid")
-
-    # Local Accuracy Plot
-    plt.figure(figsize=(10, 6))
-    ax1 = sns.barplot(data=df, x="Model", y="Local", palette="tab10")
-    ax1.set_title(
-        f"Experiment {experiment_no}: Best Feature Combination per Model{title_suffix} - Local Accuracy"
-    )
-    ax1.set_ylabel("Local Accuracy")
-    ax1.set_xlabel("Model")
-    ax1.set_ylim(0.74, 0.83)
-    for p in ax1.patches:
-        height = p.get_height()
-        ax1.annotate(
-            f"{height:.3f}",
-            (p.get_x() + p.get_width() / 2.0, height),
-            ha="center",
-            va="bottom",
-            fontsize=8,
-            xytext=(0, 3),
-            textcoords="offset points",
-        )
-    plt.tight_layout()
-    plt.show()
-
-    # Kaggle Accuracy Plot
-    plt.figure(figsize=(10, 6))
-    ax2 = sns.barplot(data=df, x="Model", y="Kaggle", palette="tab10")
-    ax2.set_title(
-        f"Experiment {experiment_no}: Best Feature Combination per Model{title_suffix} - Kaggle Accuracy"
-    )
-    ax2.set_ylabel("Kaggle Accuracy")
-    ax2.set_xlabel("Model")
-    ax2.set_ylim(0.74, 0.83)
-    for p in ax2.patches:
-        height = p.get_height()
-        ax2.annotate(
-            f"{height:.3f}",
-            (p.get_x() + p.get_width() / 2.0, height),
-            ha="center",
-            va="bottom",
-            fontsize=8,
-            xytext=(0, 3),
-            textcoords="offset points",
-        )
-    plt.tight_layout()
-    plt.show()
+# Wrappers for Experiments 4, 5, 10, 11
+def exp_4_plot_combined_accuracy(data):
+    plot_combined_accuracy(data, 4, "Best Feature Combination per Model (Untuned)")
 
 
-def exp_5_and_11_plot_all_features_combined_accuracy(
-    all_features_combined_tuned, tuned=False
-):
-    df = pd.DataFrame(all_features_combined_tuned)
-
-    sns.set(style="whitegrid")
-    if tuned:
-        title_suffix = " (Tuned)"
-        experiment_no = 11
-    else:
-        title_suffix = " (Untuned)"
-        experiment_no = 5
-
-    # Local Accuracy Plot
-    plt.figure(figsize=(10, 6))
-    ax1 = sns.barplot(data=df, x="Model", y="Local", palette="tab10")
-    ax1.set_title(
-        f"Experiment {experiment_no}: All Features Combined {title_suffix} - Local Accuracy"
-    )
-    ax1.set_ylabel("Local Accuracy")
-    ax1.set_xlabel("Model")
-    ax1.set_ylim(0.74, 0.83)
-    for p in ax1.patches:
-        height = p.get_height()
-        ax1.annotate(
-            f"{height:.3f}",
-            (p.get_x() + p.get_width() / 2.0, height),
-            ha="center",
-            va="bottom",
-            fontsize=8,
-            xytext=(0, 3),
-            textcoords="offset points",
-        )
-    plt.tight_layout()
-    plt.show()
-
-    # Kaggle Accuracy Plot
-    plt.figure(figsize=(10, 6))
-    ax2 = sns.barplot(data=df, x="Model", y="Kaggle", palette="tab10")
-    ax2.set_title(
-        f"Experiment {experiment_no}: All Features Combined {title_suffix} - Kaggle Accuracy"
-    )
-    ax2.set_ylabel("Kaggle Accuracy")
-    ax2.set_xlabel("Model")
-    ax2.set_ylim(0.65, 0.80)
-    for p in ax2.patches:
-        height = p.get_height()
-        ax2.annotate(
-            f"{height:.3f}",
-            (p.get_x() + p.get_width() / 2.0, height),
-            ha="center",
-            va="bottom",
-            fontsize=8,
-            xytext=(0, 3),
-            textcoords="offset points",
-        )
-    plt.tight_layout()
-    plt.show()
+def exp_5_plot_combined_accuracy(data):
+    plot_combined_accuracy(data, 5, "All Features Combined (Untuned)")
 
 
-def exp_6_top3_feature_each_model(data):
-    import pandas as pd
-    import seaborn as sns
-    import matplotlib.pyplot as plt
-
-    df = pd.DataFrame(data)
-    sns.set(style="whitegrid")
-
-    # Create a new column for combined label
-    df["Label"] = df["Model"] + " - " + df["Feature Name"]
-
-    plt.figure(figsize=(14, 6))
-    ax = sns.barplot(data=df, x="Label", y="Importance (%)", palette="tab10")
-
-    plt.title("Experiment 6: Top 3 Features per Model (Feature Importance)")
-    plt.ylabel("Importance (%)")
-    plt.xlabel("Model - Feature")
-    plt.xticks(rotation=45, ha="right")
-
-    for p in ax.patches:
-        height = p.get_height()
-        ax.annotate(
-            f"{height:.2f}",
-            (p.get_x() + p.get_width() / 2, height),
-            ha="center",
-            va="bottom",
-            fontsize=7,
-            xytext=(0, 3),
-            textcoords="offset points",
-        )
-
-    plt.tight_layout()
-    plt.show()
+def exp_10_plot_combined_accuracy(data):
+    plot_combined_accuracy(data, 10, "Best Feature Combination per Model (Tuned)")
 
 
-def exp_7_baseline_model_tuned(data):
-    df = pd.DataFrame(data)
-
-    # Melt for grouped bar plot
-    df_melted = df.melt(
-        id_vars="Model",
-        value_vars=["Local", "Kaggle"],
-        var_name="Metric",
-        value_name="Accuracy",
-    )
-
-    plt.figure(figsize=(10, 6))
-    ax = sns.barplot(
-        data=df_melted, x="Model", y="Accuracy", hue="Metric", palette="Set2"
-    )
-
-    plt.title("Experiment 7: Baseline Model (Tuned) - Accuracy Comparison")
-    plt.ylim(0.72, 0.83)
-    plt.xlabel("Model")
-    plt.ylabel("Accuracy")
-
-    for p in ax.patches:
-        height = p.get_height()
-        ax.annotate(
-            f"{height:.3f}",
-            (p.get_x() + p.get_width() / 2.0, height),
-            ha="center",
-            va="bottom",
-            fontsize=8,
-            xytext=(0, 3),
-            textcoords="offset points",
-        )
-
-    plt.tight_layout()
-    plt.show()
+def exp_11_plot_combined_accuracy(data):
+    plot_combined_accuracy(data, 11, "All Features Combined (Tuned)")
 
 
 # exp_1_plot_baseline_comparison(baseline_evaluation)
 # exp_2_and_8_plot_single_feature_accuracy(single_feature_data_untuned)
 # exp_3_and_9_plot_top10_combination_accuracy(top10_feature_combinations_untuned)
-# exp_4_and_10_plot_best_combinations_accuracy(best_feature_combinations_untuned)
-# exp_5_and_11_plot_all_features_combined_accuracy(all_features_combined_untuned)
+# exp_4_plot_combined_accuracy(best_feature_combinations_untuned)
+# exp_5_plot_combined_accuracy(all_features_combined_untuned)
 # exp_6_top3_feature_each_model(top3_features_per_model)
 # exp_7_baseline_model_tuned(baseline_model_tuned)
 # exp_2_and_8_plot_single_feature_accuracy(single_feature_data_tuned, tuned=True)
-exp_3_and_9_plot_top10_combination_accuracy(
-    top10_feature_combinations_tuned, tuned=True
-)
-# exp_4_and_10_plot_best_combinations_accuracy(
-#     best_feature_combinations_tuned, tuned=True
+# exp_3_and_9_plot_top10_combination_accuracy(
+#     top10_feature_combinations_tuned, tuned=True
 # )
-# exp_5_and_11_plot_all_features_combined_accuracy(
-#     all_features_combined_tuned, tuned=True
-# )
+exp_10_plot_combined_accuracy(best_feature_combinations_tuned)
+exp_11_plot_combined_accuracy(all_features_combined_tuned)
