@@ -2118,10 +2118,10 @@ sns.set(style="whitegrid")
 plt.rcParams.update(
     {
         "axes.titlesize": 12,
-        "axes.labelsize": 10,
-        "xtick.labelsize": 9,
-        "ytick.labelsize": 9,
-        "legend.fontsize": 9,
+        "axes.labelsize": 11,
+        "xtick.labelsize": 11,
+        "ytick.labelsize": 11,
+        "legend.fontsize": 11,
     }
 )
 
@@ -2407,16 +2407,16 @@ def exp_11_plot_combined_accuracy(data):
     plot_combined_accuracy(data, 11, "All Features Combined (Tuned)")
 
 
-# exp_1_plot_baseline_comparison(baseline_evaluation)
-# exp_2_and_8_plot_single_feature_accuracy(single_feature_data_untuned)
-# exp_3_and_9_plot_top10_combination_accuracy(top10_feature_combinations_untuned)
-# exp_4_plot_combined_accuracy(best_feature_combinations_untuned)
-# exp_5_plot_combined_accuracy(all_features_combined_untuned)
-# exp_6_top3_feature_each_model(top3_features_per_model)
-# exp_7_baseline_model_tuned(baseline_model_tuned)
-# exp_2_and_8_plot_single_feature_accuracy(single_feature_data_tuned, tuned=True)
-# exp_3_and_9_plot_top10_combination_accuracy(
-#     top10_feature_combinations_tuned, tuned=True
-# )
+exp_1_plot_baseline_comparison(baseline_evaluation)
+exp_2_and_8_plot_single_feature_accuracy(single_feature_data_untuned)
+exp_3_and_9_plot_top10_combination_accuracy(top10_feature_combinations_untuned)
+exp_4_plot_combined_accuracy(best_feature_combinations_untuned)
+exp_5_plot_combined_accuracy(all_features_combined_untuned)
+exp_6_top3_feature_each_model(top3_features_per_model)
+exp_7_baseline_model_tuned(baseline_model_tuned)
+exp_2_and_8_plot_single_feature_accuracy(single_feature_data_tuned, tuned=True)
+exp_3_and_9_plot_top10_combination_accuracy(
+    top10_feature_combinations_tuned, tuned=True
+)
 exp_10_plot_combined_accuracy(best_feature_combinations_tuned)
 exp_11_plot_combined_accuracy(all_features_combined_tuned)
