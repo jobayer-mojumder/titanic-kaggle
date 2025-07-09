@@ -1,2 +1,0 @@
-in src folder run
-python main.py
