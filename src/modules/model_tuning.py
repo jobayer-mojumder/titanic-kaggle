@@ -32,44 +32,7 @@ def tune_model(X, y, model_key, cv=5, scoring="accuracy"):
     param_grid = {k: v if isinstance(v, list) else [v] for k, v in raw_grid.items()}
     all_combos = list(ParameterGrid(param_grid))
 
-    # filtered = []
-    # for combo in all_combos:
-    #     max_depth = combo.get("max_depth")
-    #     min_leaf = combo.get("min_samples_leaf", 1)
-    #     if isinstance(max_depth, int) and max_depth > 4 and min_leaf >= 4:
-    #         continue
-    #     filtered.append(combo)
-
-    # filtered_out = len(all_combos) - len(filtered)
-    # print(f"⚠️  Filtered out {filtered_out} invalid combinations.")
-
-    # if not filtered:
-    #     raise ValueError("❌ All parameter combinations were filtered out.")
-
-    # # ✅ Safe rebuilding of param grid (handle NoneType + strings safely)
-    # filtered_param_grid = {}
-    # for k in param_grid:
-    #     values = {combo[k] for combo in filtered if k in combo}
-    #     if None in values:
-    #         sorted_values = sorted([v for v in values if v is not None])
-    #         filtered_param_grid[k] = sorted_values + [None]
-    #     else:
-    #         filtered_param_grid[k] = sorted(values)
-
-    # print(
-    #     f"✅ Using {len(list(ParameterGrid(filtered_param_grid)))} tuning combinations."
-    # )
-
     X = ensure_numeric_features(X)
-
-    # search = GridSearchCV(
-    #     estimator=model,
-    #     param_grid=filtered_param_grid,
-    #     cv=cv,
-    #     scoring=scoring,
-    #     verbose=1,
-    #     n_jobs=-1,
-    # )
 
     search = RandomizedSearchCV(
         estimator=model,
