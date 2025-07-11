@@ -2105,6 +2105,23 @@ all_features_combined_tuned = [
     },
 ]
 
+# Baseline values from your table
+baseline_kaggle = {
+    "Decision Tree": 0.73205,
+    "XGBoost": 0.75119,
+    "Random Forests": 0.76555,
+    "LightGBM": 0.76555,
+    "CatBoost": 0.77751,
+}
+
+baseline_local = {
+    "Decision Tree": 0.75754,
+    "XGBoost": 0.78547,
+    "Random Forests": 0.79106,
+    "LightGBM": 0.78994,
+    "CatBoost": 0.81006,
+}
+
 fixed_palette = {
     "Decision Tree": "#1f77b4",
     "XGBoost": "#ff7f0e",
@@ -2139,7 +2156,7 @@ def annotate_bars(ax):
             (p.get_x() + p.get_width() / 2.0, height),
             ha="center",
             va="bottom",
-            fontsize=8,
+            fontsize=11,
             xytext=(0, 3),
             textcoords="offset points",
         )
@@ -2294,100 +2311,77 @@ def exp_6_top3_feature_each_model(data):
     plt.show()
 
 
-def exp_7_baseline_model_tuned(
-    data, title="Experiment 7: Baseline Model (Tuned) Accuracy", save_path=None
-):
-    df = pd.DataFrame(data)
-    fig, ax = plt.subplots(figsize=(10, 6))
-    bar_width = 0.35
-    x = range(len(df))
-
-    kaggle_colors = [fixed_palette[m] for m in df["Model"]]
-    local_colors = [fixed_palette[m] for m in df["Model"]]
-
-    bars1 = ax.bar(
-        [i - bar_width / 2 for i in x],
-        df["Kaggle"],
-        width=bar_width,
-        label="Kaggle",
-        color=kaggle_colors,
-    )
-    bars2 = ax.bar(
-        [i + bar_width / 2 for i in x],
-        df["Local"],
-        width=bar_width,
-        label="Local",
-        color=local_colors,
-        alpha=0.75,
-    )
-
-    ax.set_xlabel("Model")
-    ax.set_ylabel("Accuracy")
-    ax.set_title(title + "\n(Deterministic run with fixed seed = 42)")
-    ax.set_xticks(list(x))
-    ax.set_xticklabels(df["Model"])
-    ax.set_ylim(0.6, 0.9)
-    ax.yaxis.grid(True, linestyle="--", alpha=0.5)
-    ax.legend()
-
-    for bar in bars1 + bars2:
-        height = bar.get_height()
-        ax.annotate(
-            f"{height:.3f}",
-            xy=(bar.get_x() + bar.get_width() / 2, height),
-            xytext=(0, 3),
-            textcoords="offset points",
-            ha="center",
-            va="bottom",
-            fontsize=8,
-        )
-
-    plt.tight_layout()
-    if save_path:
-        plt.savefig(save_path, dpi=300)
-        print(f"✅ Plot saved to {save_path}")
-    else:
-        plt.show()
-
-
 def plot_combined_accuracy(data, experiment_number, title_suffix):
     df = pd.DataFrame(data)
-    fig, ax = plt.subplots(figsize=(10, 6))
-    bar_width = 0.35
-    x = range(len(df))
+    fig, ax = plt.subplots(figsize=(12, 6))
+    bar_width = 0.2
+    x = list(range(len(df)))
 
     kaggle_colors = [fixed_palette[m] for m in df["Model"]]
-    local_colors = kaggle_colors
 
+    # Bar positions: left to right: baseline_kaggle, kaggle, local, baseline_local
+    positions_kaggle_base = [i - 1.5 * bar_width for i in x]
+    positions_kaggle = [i - 0.5 * bar_width for i in x]
+    positions_local = [i + 0.5 * bar_width for i in x]
+    positions_local_base = [i + 1.5 * bar_width for i in x]
+
+    # Actual bars
     bars1 = ax.bar(
-        [i - bar_width / 2 for i in x],
+        positions_kaggle,
         df["Kaggle"],
         width=bar_width,
         label="Kaggle",
         color=kaggle_colors,
     )
     bars2 = ax.bar(
-        [i + bar_width / 2 for i in x],
+        positions_local,
         df["Local"],
         width=bar_width,
         label="Local",
-        color=local_colors,
+        color=kaggle_colors,
         alpha=0.75,
     )
 
+    # Baseline bars
+    baseline_kaggle_vals = [baseline_kaggle.get(m, 0) for m in df["Model"]]
+    baseline_local_vals = [baseline_local.get(m, 0) for m in df["Model"]]
+
+    bars3 = ax.bar(
+        positions_kaggle_base,
+        baseline_kaggle_vals,
+        width=bar_width,
+        label="Baseline Kaggle",
+        color="blue",
+        alpha=0.4,
+    )
+    bars4 = ax.bar(
+        positions_local_base,
+        baseline_local_vals,
+        width=bar_width,
+        label="Baseline Local",
+        color="orange",
+        alpha=0.4,
+    )
+
+    # Axes settings
     ax.set_xlabel("Model")
     ax.set_ylabel("Accuracy")
     ax.set_title(
-        f"Experiment {experiment_number}: {title_suffix}\n(Local & Kaggle Accuracy - Seed=42)"
+        f"Experiment {experiment_number}: {title_suffix}\n(Local & Kaggle Accuracy vs Baselines)"
     )
-    ax.set_xticks(list(x))
+    ax.set_xticks(x)
     ax.set_xticklabels(df["Model"])
     ax.set_ylim(0.6, 0.9)
     ax.yaxis.grid(True, linestyle="--", alpha=0.5)
     ax.legend()
     annotate_bars(ax)
+
     plt.tight_layout()
     plt.show()
+
+
+def exp_7_baseline_model_tuned(data):
+    plot_combined_accuracy(data, 7, "Baseline Model Accuracy (Tuned)")
 
 
 # Wrappers for Experiments 4, 5, 10, 11
