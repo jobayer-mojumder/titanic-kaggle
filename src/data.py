@@ -2105,6 +2105,50 @@ all_features_combined_tuned = [
     },
 ]
 
+ablation_data = [
+    # Decision Tree
+    {
+        "Model": "Decision Tree",
+        "Setting": "Baseline",
+        "Kaggle": 0.73205,
+        "Local": 0.75754,
+    },
+    {"Model": "Decision Tree", "Setting": "FE", "Kaggle": 0.80143, "Local": 0.80750},
+    {"Model": "Decision Tree", "Setting": "MT", "Kaggle": 0.76315, "Local": 0.80335},
+    {"Model": "Decision Tree", "Setting": "FE+MT", "Kaggle": 0.78229, "Local": 0.78994},
+    # XGBoost
+    {"Model": "XGBoost", "Setting": "Baseline", "Kaggle": 0.75119, "Local": 0.78547},
+    {"Model": "XGBoost", "Setting": "FE", "Kaggle": 0.80382, "Local": 0.79665},
+    {"Model": "XGBoost", "Setting": "MT", "Kaggle": 0.77033, "Local": 0.79106},
+    {"Model": "XGBoost", "Setting": "FE+MT", "Kaggle": 0.7799, "Local": 0.79441},
+    # Random Forests
+    {
+        "Model": "Random Forests",
+        "Setting": "Baseline",
+        "Kaggle": 0.76555,
+        "Local": 0.79106,
+    },
+    {"Model": "Random Forests", "Setting": "FE", "Kaggle": 0.80861, "Local": 0.79665},
+    {"Model": "Random Forests", "Setting": "MT", "Kaggle": 0.77033, "Local": 0.81006},
+    {
+        "Model": "Random Forests",
+        "Setting": "FE+MT",
+        "Kaggle": 0.79186,
+        "Local": 0.79441,
+    },
+    # LightGBM
+    {"Model": "LightGBM", "Setting": "Baseline", "Kaggle": 0.76555, "Local": 0.78994},
+    {"Model": "LightGBM", "Setting": "FE", "Kaggle": 0.80382, "Local": 0.78883},
+    {"Model": "LightGBM", "Setting": "MT", "Kaggle": 0.75598, "Local": 0.79888},
+    {"Model": "LightGBM", "Setting": "FE+MT", "Kaggle": 0.78947, "Local": 0.80559},
+    # CatBoost
+    {"Model": "CatBoost", "Setting": "Baseline", "Kaggle": 0.77751, "Local": 0.81006},
+    {"Model": "CatBoost", "Setting": "FE", "Kaggle": 0.80143, "Local": 0.80894},
+    {"Model": "CatBoost", "Setting": "MT", "Kaggle": 0.75119, "Local": 0.81453},
+    {"Model": "CatBoost", "Setting": "FE+MT", "Kaggle": 0.77272, "Local": 0.8067},
+]
+
+
 # Baseline values from your table
 baseline_kaggle = {
     "Decision Tree": 0.73205,
@@ -2188,14 +2232,15 @@ def exp_1_plot_baseline_comparison(
         alpha=0.75,
     )
 
-    ax.set_xlabel("Model")
-    ax.set_ylabel("Accuracy")
-    ax.set_title(title + "\n(Deterministic run with fixed seed = 42)")
+    ax.set_xlabel("Model", fontsize=14)
+    ax.set_ylabel("Accuracy", fontsize=14)
+    ax.set_title(title + "\n(Deterministic run with fixed seed = 42)", fontsize=16)
     ax.set_xticks(list(x))
-    ax.set_xticklabels(df["Model"])
+    ax.set_xticklabels(df["Model"], fontsize=12)
+    ax.tick_params(axis="y", labelsize=12)
     ax.set_ylim(0.6, 0.9)
     ax.yaxis.grid(True, linestyle="--", alpha=0.5)
-    ax.legend()
+    ax.legend(fontsize=12)
     annotate_bars(ax)
     plt.tight_layout()
     if save_path:
@@ -2401,16 +2446,78 @@ def exp_11_plot_combined_accuracy(data):
     plot_combined_accuracy(data, 11, "All Features Combined (Tuned)")
 
 
-exp_1_plot_baseline_comparison(baseline_evaluation)
-exp_2_and_8_plot_single_feature_accuracy(single_feature_data_untuned)
-exp_3_and_9_plot_top10_combination_accuracy(top10_feature_combinations_untuned)
-exp_4_plot_combined_accuracy(best_feature_combinations_untuned)
-exp_5_plot_combined_accuracy(all_features_combined_untuned)
-exp_6_top3_feature_each_model(top3_features_per_model)
-exp_7_baseline_model_tuned(baseline_model_tuned)
-exp_2_and_8_plot_single_feature_accuracy(single_feature_data_tuned, tuned=True)
-exp_3_and_9_plot_top10_combination_accuracy(
-    top10_feature_combinations_tuned, tuned=True
-)
-exp_10_plot_combined_accuracy(best_feature_combinations_tuned)
-exp_11_plot_combined_accuracy(all_features_combined_tuned)
+def plot_model_ablation_grouped_bars(data, save_path=None):
+    df = pd.DataFrame(data)
+    models = df["Model"].unique()
+    setting_order = ["Baseline", "FE", "MT", "FE+MT"]
+
+    for model in models:
+        model_df = df[df["Model"] == model].copy()
+        model_df = model_df.set_index("Setting").reindex(setting_order).reset_index()
+
+        x = range(len(setting_order))
+        bar_width = 0.35
+        base_color = fixed_palette.get(model, "#999999")
+
+        fig, ax = plt.subplots(figsize=(10, 6))
+        kaggle_bars = ax.bar(
+            [i - bar_width / 2 for i in x],
+            model_df["Kaggle"],
+            width=bar_width,
+            label="Kaggle",
+            color=base_color,
+        )
+        local_bars = ax.bar(
+            [i + bar_width / 2 for i in x],
+            model_df["Local"],
+            width=bar_width,
+            label="Local",
+            color=base_color,
+            alpha=0.6,
+        )
+
+        ax.set_title(f"{model} – Accuracy Across Experiment Settings", fontsize=14)
+        ax.set_xlabel("Setting", fontsize=14)
+        ax.set_ylabel("Accuracy", fontsize=14)
+        ax.set_xticks(list(x))
+        ax.set_xticklabels(setting_order, fontsize=14)
+        ax.set_ylim(0.6, 0.9)
+        ax.tick_params(axis="y", labelsize=14)
+        ax.yaxis.grid(True, linestyle="--", alpha=0.5)
+        ax.legend(fontsize=12)
+
+        # Annotate each bar
+        for bars in [kaggle_bars, local_bars]:
+            for bar in bars:
+                height = bar.get_height()
+                ax.annotate(
+                    f"{height:.3f}",
+                    xy=(bar.get_x() + bar.get_width() / 2, height),
+                    xytext=(0, 3),
+                    textcoords="offset points",
+                    ha="center",
+                    fontsize=12,
+                )
+
+        plt.tight_layout()
+        if save_path:
+            filename = f"{save_path}/{model.lower().replace(' ', '_')}_ablation.png"
+            plt.savefig(filename, dpi=300)
+        else:
+            plt.show()
+
+
+# exp_1_plot_baseline_comparison(baseline_evaluation)
+# exp_2_and_8_plot_single_feature_accuracy(single_feature_data_untuned)
+# exp_3_and_9_plot_top10_combination_accuracy(top10_feature_combinations_untuned)
+# exp_4_plot_combined_accuracy(best_feature_combinations_untuned)
+# exp_5_plot_combined_accuracy(all_features_combined_untuned)
+# exp_6_top3_feature_each_model(top3_features_per_model)
+# exp_7_baseline_model_tuned(baseline_model_tuned)
+# exp_2_and_8_plot_single_feature_accuracy(single_feature_data_tuned, tuned=True)
+# exp_3_and_9_plot_top10_combination_accuracy(
+#     top10_feature_combinations_tuned, tuned=True
+# )
+# exp_10_plot_combined_accuracy(best_feature_combinations_tuned)
+# exp_11_plot_combined_accuracy(all_features_combined_tuned)
+plot_model_ablation_grouped_bars(ablation_data)
